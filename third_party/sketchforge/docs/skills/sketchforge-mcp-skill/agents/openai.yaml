@@ -1,0 +1,4 @@
+interface:
+  display_name: "SketchForge MCP Skill"
+  short_description: "Control live SketchForge editor tabs"
+  default_prompt: "Use $sketchforge-mcp-skill to inspect the live SketchForge scene and modify selected objects."

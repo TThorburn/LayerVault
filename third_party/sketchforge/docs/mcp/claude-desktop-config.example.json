@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "sketchforge": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/SketchForge-3D/scripts/sketchforge-mcp-server.mjs"
+      ]
+    }
+  }
+}
