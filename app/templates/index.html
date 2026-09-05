@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f3f7ff">
+  <meta name="color-scheme" content="light dark">
+  <title>LayerVault</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/branding/layervault-logo-64.png?v={{ app_version }}">
+  <link rel="apple-touch-icon" sizes="192x192" href="/static/branding/layervault-logo-192.png?v={{ app_version }}">
+  <script>
+  (() => {
+    try {
+      const theme = localStorage.getItem('layervault-theme') || 'frost';
+      if (['frost','midnight','aurora','sunset','ocean','orchid','forest','nebula'].includes(theme)) document.documentElement.dataset.theme = theme;
+    } catch (_) { document.documentElement.dataset.theme = 'frost'; }
+  })();
+  </script>
+  <style id="layervault-core-styles">{{ inline_styles | safe }}</style>
+  <script type="importmap">
+  {"imports":{"three":"/static/vendor/three.module.min.js?v={{ app_version }}","three/addons/":"/static/vendor/addons/","manifold-3d":"/static/vendor/manifold/manifold.js?v={{ app_version }}"}}
+  </script>
+</head>
+<body data-app-version="{{ app_version }}" data-page="dashboard" data-sketchforge-url="{{ sketchforge_url }}">
+  <div id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brandmark" aria-hidden="true"><img src="/static/branding/layervault-logo-192.png?v={{ app_version }}" alt=""></div>
+        <div><strong>LayerVault</strong><span>3D Printing Suite</span></div>
+      </div>
+      <nav id="nav" aria-label="Primary navigation">
+        <button data-page="dashboard" class="active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm10 7h6V11h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg></span>Dashboard</button>
+        <button data-page="library"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5"/></svg></span>Model Library</button>
+        <button data-page="projects"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 5.5h6.5L12 7h8v12H4V5.5Z"/><path d="M4 9h16"/></svg></span>Projects</button>
+        <button data-page="workshop"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m14.5 5.5 4 4M5 19l4.2-1 9.3-9.3-3.2-3.2L6 14.8 5 19Z"/><path d="M4 4h5M4 8h3"/></svg></span>Workshop</button>
+        <button data-page="materials"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M8 4h8l3 5-3 11H8L5 9l3-5Z"/><path d="M5 9h14M9 4l-1 5m7-5 1 5"/></svg></span>Materials & Stock</button>
+        <button data-page="printers"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M7 8V4h10v4M6 17H4v-7h16v7h-2M7 14h10v6H7v-6Z"/><path d="M17 11h.01"/></svg></span>Printers & Profiles</button>
+        <button data-page="jobs"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg></span>Print Lab</button>
+        <button data-page="settings" class="nav-settings"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="M19 13.5v-3l-2.1-.7a7.4 7.4 0 0 0-.7-1.7l1-2-2.2-2.2-2 1a7.4 7.4 0 0 0-1.7-.7L10.5 2h-3l-.7 2.1a7.4 7.4 0 0 0-1.7.7l-2-1L.9 6l1 2a7.4 7.4 0 0 0-.7 1.7L0 10.5v3l2.1.7c.2.6.4 1.2.7 1.7l-1 2L4 20.1l2-1c.5.3 1.1.5 1.7.7l.8 2.2h3l.7-2.1c.6-.2 1.2-.4 1.7-.7l2 1 2.2-2.2-1-2c.3-.5.5-1.1.7-1.7l2.2-.8Z" transform="translate(2 0) scale(.83)"/></svg></span>Settings</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="local-pill"><i></i><span>Local workspace · data stays here</span></div>
+        <button class="ghost full" id="scanImportBtn">↻ Scan import folder</button>
+        <span>LayerVault · v{{ app_version }} · <a href="/license" target="_blank" rel="noopener">AGPL-3.0</a></span>
+      </div>
+    </aside>
+    <button id="navScrim" class="nav-scrim" aria-label="Close navigation"></button>
+    <main>
+      <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+      <section id="content">
+        <div id="serverBootFallback" class="boot-fallback">
+          <div class="boot-spinner" aria-hidden="true"></div>
+          <div><strong>Starting LayerVault…</strong><span>Loading your local workspace.</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <input id="fileInput" type="file" multiple accept=".stl,.obj,.3mf,.step,.stp,.gcode,.bgcode,.ctb,.goo,.lys,.zip" hidden>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <div class="modal-head"><div><small id="modalEyebrow">LayerVault</small><h2 id="modalTitle"></h2></div><button class="icon-btn" data-close-modal aria-label="Close">×</button></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalFooter" class="modal-footer"></div>
+    </div>
+  </div>
+  <div id="confirmDialog" class="confirm-dialog hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <div class="confirm-backdrop"></div>
+    <div class="confirm-card">
+      <div class="confirm-symbol" aria-hidden="true">!</div>
+      <div><small>Confirm action</small><h2 id="confirmTitle">Are you sure?</h2><p id="confirmMessage"></p></div>
+      <div class="confirm-actions"><button class="ghost" id="confirmCancel">Cancel</button><button class="danger confirm-danger" id="confirmAccept">Confirm</button></div>
+    </div>
+  </div>
+  <div id="dropOverlay" class="drop-overlay"><div><span>⇩</span><strong>Drop models to import</strong><small>Files stay on your LayerVault server.</small></div></div>
+  <div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
+  <div id="bootFailure" class="boot-failure hidden" role="alert">
+    <strong>LayerVault frontend did not start.</strong>
+    <span id="bootFailureMessage">The server is running, but the browser application failed to initialise.</span>
+    <small>Open <code>/health/assets</code> for asset diagnostics.</small>
+  </div>
+  <script>
+  (() => {
+    const show = (message) => {
+      const el = document.getElementById('bootFailure');
+      if (!el) return;
+      el.classList.remove('hidden');
+      const msg = document.getElementById('bootFailureMessage');
+      if (msg && message) msg.textContent = String(message);
+    };
+    window.__LAYERVAULT_SHOW_BOOT_FAILURE__ = show;
+    window.addEventListener('error', e => {
+      if (!window.__LAYERVAULT_READY__) show(e?.message || 'A browser error stopped LayerVault from starting.');
+    });
+    window.addEventListener('unhandledrejection', e => {
+      if (!window.__LAYERVAULT_READY__) show(e?.reason?.message || e?.reason || 'LayerVault startup promise failed.');
+    });
+    setTimeout(() => {
+      if (!window.__LAYERVAULT_READY__) show('LayerVault did not finish starting within 4 seconds. The core page is still available for diagnostics.');
+    }, 4000);
+  })();
+  </script>
+  <script type="module">{{ inline_app_js | safe }}</script>
+</body>
+</html>
