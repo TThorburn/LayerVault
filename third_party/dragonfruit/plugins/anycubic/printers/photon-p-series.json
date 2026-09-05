@@ -1,0 +1,62 @@
+[
+  {
+    "presetId": "anycubic-photon-p1-max-pp1m",
+    "profileVersion": 1,
+    "manufacturer": "Anycubic",
+    "family": "Photon P",
+    "name": "Photon P1 Max",
+    "imageAssetPath": "./assets/photon-p/photon-p1-max.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon P1 Max",
+    "buildVolumeMm": {
+      "width": null,
+      "depth": null,
+      "height": 300
+    },
+    "pixelSize": {
+      "x": 24.8,
+      "y": 24.8
+    },
+    "display": {
+      "resolutionX": 11520,
+      "resolutionY": 8640,
+      "outputFormat": ".azf",
+      "formatVersion": "pp1m",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-p1-pp1",
+    "profileVersion": 1,
+    "manufacturer": "Anycubic",
+    "family": "Photon P",
+    "name": "Photon P1",
+    "imageAssetPath": "./assets/photon-p/photon-p1.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon P1",
+    "buildVolumeMm": {
+      "width": null,
+      "depth": null,
+      "height": 230
+    },
+    "pixelSize": {
+      "x": 16.8,
+      "y": 24.8
+    },
+    "display": {
+      "resolutionX": 13312,
+      "resolutionY": 5120,
+      "outputFormat": ".azf",
+      "formatVersion": "pp1",
+      "settingsMode": "simple",
+      "mirrorX": true,
+      "mirrorY": false
+    }
+  }
+]

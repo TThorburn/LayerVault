@@ -1,0 +1,12 @@
+[dependencies]
+# No additional crates needed — zip, serde_json, base64, png, and rayon
+# are already available from the slicer-v3 workspace.
+
+[optional-dependencies]
+
+[features]
+default = []
+
+[notes]
+purpose = "Anycubic AFZ (zip-based) and AFF encoding support"
+minimum-rust = "1.75"

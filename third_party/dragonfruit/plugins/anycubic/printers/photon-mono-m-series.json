@@ -1,0 +1,194 @@
+[
+  {
+    "presetId": "anycubic-photon-mono-m7-max-pm7m",
+    "profileVersion": 1,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M7 Max",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m7-max.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M7 Max",
+    "buildVolumeMm": {
+      "width": 297.5,
+      "depth": 164,
+      "height": 300
+    },
+    "pixelSize": {
+      "x": 46,
+      "y": 46
+    },
+    "display": {
+      "resolutionX": 6480,
+      "resolutionY": 3600,
+      "outputFormat": ".azf",
+      "formatVersion": "pm7m",
+      "settingsMode": "simple",
+      "mirrorX": true,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-mono-m7-pro-pwsz",
+    "profileVersion": 1,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M7 Pro",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m7-pro.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M7 Pro",
+    "buildVolumeMm": {
+      "width": 223.642,
+      "depth": 126.48,
+      "height": 230
+    },
+    "pixelSize": {
+      "x": 16.8,
+      "y": 24.8
+    },
+    "display": {
+      "resolutionX": 13312,
+      "resolutionY": 5120,
+      "outputFormat": ".azf",
+      "formatVersion": "pwsz",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-mono-m7-pm7",
+    "profileVersion": 1,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M7",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m7.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M7",
+    "buildVolumeMm": {
+      "width": 223.642,
+      "depth": 126.48,
+      "height": 230
+    },
+    "pixelSize": {
+      "x": 16.8,
+      "y": 24.8
+    },
+    "display": {
+      "resolutionX": 13312,
+      "resolutionY": 5120,
+      "outputFormat": ".azf",
+      "formatVersion": "pm7",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-mono-m5s-pro-m5sp",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M5s Pro",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m5s-pro.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M5s Pro",
+    "buildVolumeMm": {
+      "width": 223.6416,
+      "depth": 126.976,
+      "height": 200
+    },
+    "pixelSize": {
+      "x": 16.8,
+      "y": 16.8
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 13312,
+      "resolutionY": 5120,
+      "outputFormat": ".aff",
+      "formatVersion": "m5sp",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-mono-m5s-pm5s",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M5s",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m5s.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M5s",
+    "buildVolumeMm": {
+      "width": 218.88,
+      "depth": 122.88,
+      "height": 200
+    },
+    "pixelSize": {
+      "x": 19,
+      "y": 19
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 11520,
+      "resolutionY": 5120,
+      "outputFormat": ".aff",
+      "formatVersion": "pm5s",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-mono-m5-pm5",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon Mono M",
+    "name": "Photon Mono M5",
+    "imageAssetPath": "./assets/photon-mono-m/photon-mono-m5.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Mono M5",
+    "buildVolumeMm": {
+      "width": 218.88,
+      "depth": 122.88,
+      "height": 200
+    },
+    "pixelSize": {
+      "x": 19,
+      "y": 19
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 11520,
+      "resolutionY": 5120,
+      "outputFormat": ".aff",
+      "formatVersion": "pm5",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  }
+]

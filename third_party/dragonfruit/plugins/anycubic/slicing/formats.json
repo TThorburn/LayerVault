@@ -1,0 +1,41 @@
+{
+  "AFF": {
+    "extensions": [
+      ".pws",
+      ".pw0",
+      ".pwx",
+      ".dlp",
+      ".dl2p",
+      ".pwmx",
+      ".pmx2",
+      ".pwmb",
+      ".px6s",
+      ".pwmo",
+      ".pm3n",
+      ".pm4n",
+      ".pwms",
+      ".pwma",
+      ".pmsq",
+      ".pm3",
+      ".pm3m",
+      ".pm3r",
+      ".pm5",
+      ".pm5s",
+      ".m5sp"
+    ],
+    "displayName": "Anycubic File Format (AFF)",
+    "version": "1.0",
+    "notes": "Legacy/standard Anycubic container format used by Photon and Photon Mono series"
+  },
+  "AZF": {
+    "extensions": [
+      ".pm4u",
+      ".pm7",
+      ".pm7m",
+      ".pwsz"
+    ],
+    "displayName": "Anycubic Zip Format (AZF)",
+    "version": "1.0",
+    "notes": "Newer zip-based Anycubic container format used by Photon Mono M7 series and Mono 4 Ultra"
+  }
+}

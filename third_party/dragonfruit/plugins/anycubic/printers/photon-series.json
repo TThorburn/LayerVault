@@ -1,0 +1,172 @@
+[
+  {
+    "presetId": "anycubic-photon-d2-dl2p",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon",
+    "name": "Photon D2",
+    "imageAssetPath": "./assets/photon/photon-d2.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon D2",
+    "buildVolumeMm": {
+      "width": 130.56,
+      "depth": 73.44,
+      "height": 165
+    },
+    "pixelSize": {
+      "x": 51,
+      "y": 51
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 2560,
+      "resolutionY": 1440,
+      "outputFormat": ".aff",
+      "formatVersion": "dl2p",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-ultra-dlp",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon",
+    "name": "Photon Ultra",
+    "imageAssetPath": "./assets/photon/photon-ultra.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Ultra",
+    "buildVolumeMm": {
+      "width": 102.4,
+      "depth": 57.6,
+      "height": 165
+    },
+    "pixelSize": {
+      "x": 80,
+      "y": 80
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 1280,
+      "resolutionY": 720,
+      "outputFormat": ".aff",
+      "formatVersion": "dlp",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-x-pwx",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon",
+    "name": "Photon X",
+    "imageAssetPath": "./assets/photon/photon-x.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon X",
+    "buildVolumeMm": {
+      "width": 192,
+      "depth": 120,
+      "height": 245
+    },
+    "pixelSize": {
+      "x": 75,
+      "y": 75
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 2560,
+      "resolutionY": 1600,
+      "outputFormat": ".aff",
+      "formatVersion": "pwx",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-s-pws",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon",
+    "name": "Photon S",
+    "imageAssetPath": "./assets/photon/photon-s.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon S",
+    "buildVolumeMm": {
+      "width": 120.96,
+      "depth": 68.04,
+      "height": 165
+    },
+    "pixelSize": {
+      "x": 47.25,
+      "y": 47.25
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 2560,
+      "resolutionY": 1440,
+      "outputFormat": ".aff",
+      "formatVersion": "pws",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-zero-pw0",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon",
+    "name": "Photon Zero",
+    "imageAssetPath": "./assets/photon/photon-zero.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon Zero",
+    "buildVolumeMm": {
+      "width": 98.637,
+      "depth": 55.44,
+      "height": 150
+    },
+    "pixelSize": {
+      "x": 115.5,
+      "y": 115.5
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 854,
+      "resolutionY": 480,
+      "outputFormat": ".aff",
+      "formatVersion": "pw0",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  }
+]

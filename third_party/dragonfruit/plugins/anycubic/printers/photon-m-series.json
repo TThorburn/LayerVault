@@ -1,0 +1,104 @@
+[
+  {
+    "presetId": "anycubic-photon-m3-max-pm3m",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon M",
+    "name": "Photon M3 Max",
+    "imageAssetPath": "./assets/photon-m/photon-m3-max.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon M3 Max",
+    "buildVolumeMm": {
+      "width": 298.08,
+      "depth": 165.6,
+      "height": 300
+    },
+    "pixelSize": {
+      "x": 46,
+      "y": 46
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 6480,
+      "resolutionY": 3600,
+      "outputFormat": ".aff",
+      "formatVersion": "pm3m",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-m3-premium-pm3r",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon M",
+    "name": "Photon M3 Premium",
+    "imageAssetPath": "./assets/photon-m/photon-m3-premium.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon M3 Premium",
+    "buildVolumeMm": {
+      "width": 218.88,
+      "depth": 123.12,
+      "height": 250
+    },
+    "pixelSize": {
+      "x": 38,
+      "y": 38
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 5760,
+      "resolutionY": 3240,
+      "outputFormat": ".aff",
+      "formatVersion": "pm3r",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  },
+  {
+    "presetId": "anycubic-photon-m3-pm3",
+    "profileVersion": 2,
+    "manufacturer": "Anycubic",
+    "family": "Photon M",
+    "name": "Photon M3",
+    "imageAssetPath": "./assets/photon-m/photon-m3.png",
+    "antiAliasing": true,
+    "hasCamera": false,
+    "networkSupport": null,
+    "networkFilter": "Photon M3",
+    "buildVolumeMm": {
+      "width": 163.84,
+      "depth": 102.4,
+      "height": 180
+    },
+    "pixelSize": {
+      "x": 40,
+      "y": 40
+    },
+    "bitDepth": {
+      "bits": 4,
+      "description": "4-bit color depth, 16 grayscale levels for anti-aliasing"
+    },
+    "display": {
+      "resolutionX": 4096,
+      "resolutionY": 2560,
+      "outputFormat": ".aff",
+      "formatVersion": "pm3",
+      "settingsMode": "simple",
+      "mirrorX": false,
+      "mirrorY": false
+    }
+  }
+]
