@@ -16,11 +16,8 @@ LayerVault uses open databases for importable records and official manufacturer 
 From the folder containing `docker-compose.yml`:
 
 ```powershell
-docker compose down --remove-orphans
 docker compose up -d --build
 ```
-
-The first command removes obsolete slicer containers left by an older Compose file. It does not delete the bind-mounted LayerVault data folders.
 
 Open LayerVault at `http://localhost:8088`. SketchForge runs at `http://localhost:3004` and opens inside Workshop.
 
