@@ -6,6 +6,7 @@
 - Added transparent master, 512 px, 192 px and 64 px image assets.
 - Added a browser favicon and Apple touch icon.
 - Included the new identity in the Docker image and self-hosted release archive.
+- Rebuilt the project README with a branded hero, current product screenshot, feature map, deployment guide and architecture diagram.
 
 ## 0.3.28 — Self-hosted Release Polish
 
