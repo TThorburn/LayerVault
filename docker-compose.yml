@@ -1,0 +1,55 @@
+services:
+  layervault:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      sketchforge:
+        condition: service_started
+    ports:
+      # Trusted home/workshop LAN only. Do not publish directly to the internet.
+      - "8088:8080"
+    environment:
+      TZ: ${LAYERVAULT_TIMEZONE:-Europe/London}
+      DATA_DIR: /data
+      DATABASE_DIR: /storage/database
+      FILES_DIR: /storage/models
+      BACKUP_DIR: /storage/backups
+      LAYERVAULT_DATA_PATH: ${LAYERVAULT_DATA_PATH:-./data}
+      LAYERVAULT_DATABASE_PATH: ${LAYERVAULT_DATABASE_PATH:-./data}
+      LAYERVAULT_MODELS_PATH: ${LAYERVAULT_MODELS_PATH:-./data/files}
+      LAYERVAULT_BACKUPS_PATH: ${LAYERVAULT_BACKUPS_PATH:-./data/backups}
+      # Optional main-app HTTP Basic auth. Leave APP_PASSWORD empty to disable.
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD:-}
+      # AUTO_IMPORT: "true"
+    volumes:
+      - type: bind
+        source: ${LAYERVAULT_DATA_PATH:-./data}
+        target: /data
+      - type: bind
+        source: ${LAYERVAULT_DATABASE_PATH:-./data}
+        target: /storage/database
+      - type: bind
+        source: ${LAYERVAULT_MODELS_PATH:-./data/files}
+        target: /storage/models
+      - type: bind
+        source: ${LAYERVAULT_BACKUPS_PATH:-./data/backups}
+        target: /storage/backups
+
+  sketchforge:
+    image: layervault-sketchforge:local
+    build:
+      context: ./third_party/sketchforge
+      dockerfile: deploy/docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      # Browsers load Workshop directly from this port on the Docker host.
+      # Keep it reachable on the trusted LAN alongside 8088, not the internet.
+      - "3004:3000"
+    environment:
+      SKETCHFORGE_SHARED_PROJECTS_DIR: /data/projects
+      SKETCHFORGE_LEGACY_PORT: 3000
+    volumes:
+      - type: bind
+        source: ${LAYERVAULT_DATA_PATH:-./data}/sketchforge/projects
+        target: /data/projects
