@@ -3,7 +3,7 @@ import os, sqlite3, sys, tempfile
 root=Path(__file__).resolve().parents[1];sys.path.insert(0,str(root))
 os.environ['DATA_DIR']=tempfile.mkdtemp(prefix='layervault-pass9-fresh-')
 from app.main import DB_PATH, app
-assert app.version=='0.3.31'
+assert app.version=='0.3.32'
 conn=sqlite3.connect(DB_PATH)
 tables={r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
 assert {'models','projects','materials','printers','profiles','collections','jobs','job_models','material_transactions','custom_image_assets','custom_image_bindings','health_reports','manufacturing_reports','workshop_designs','backup_schedules','backup_runs'} <= tables
@@ -25,4 +25,4 @@ conn.close()
 with sqlite3.connect(DB_PATH) as conn:
     model_indexes={r[1] for r in conn.execute("PRAGMA index_list('models')").fetchall()}
     assert {'idx_models_title','idx_models_added_at','idx_models_category','idx_models_status'}.issubset(model_indexes)
-print('LayerVault v0.3.31 fresh-install schema test: PASS')
+print('LayerVault v0.3.32 fresh-install schema test: PASS')

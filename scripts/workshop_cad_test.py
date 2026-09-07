@@ -27,7 +27,7 @@ def cube_stl(size: float = 10.0) -> bytes:
 
 client = TestClient(app)
 health = client.get("/health").json()
-assert health == {"ok": True, "version": "0.3.31", "schema": 128}
+assert health == {"ok": True, "version": "0.3.32", "schema": 128}
 
 uploaded = client.post(
     "/api/models/upload",
@@ -118,4 +118,4 @@ assert any(item["id"] == design["id"] and item["object_count"] == 3 for item in 
 assert client.delete(f"/api/workshop/designs/{design['id']}").json() == {"ok": True}
 assert client.get(f"/api/workshop/designs/{design['id']}").status_code == 404
 
-print("LayerVault v0.3.31 Workshop CAD persistence, revision and health-gated export: PASS")
+print("LayerVault v0.3.32 Workshop CAD persistence, revision and health-gated export: PASS")

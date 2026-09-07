@@ -37,4 +37,4 @@ m=c.post('/api/materials',json={'name':'Test PLA','kind':'Filament','material':'
 qr=c.get(f"/api/materials/{m['id']}/qr")
 assert qr.status_code == 200 and qr.headers['content-type'].startswith('image/png')
 
-print('LayerVault v0.3.31 final refinement regression: PASS')
+print('LayerVault v0.3.32 final refinement regression: PASS')

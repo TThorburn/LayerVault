@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.32 — Portainer One-click Remount
+
+- Added an optional stack-webhook connection in Settings so a completely new host folder or mounted share can be applied without manually editing environment variables.
+- Uses the stack-specific Portainer webhook rather than a general API key or Docker socket.
+- Performs a two-stage safe move: Portainer remounts and redeploys first, then LayerVault resumes automatically, copies existing data and switches paths.
+- Stores the webhook privately in the persistent configuration volume and never returns its secret to the browser.
+- Retained mapped-root operation as the portable fallback for Docker Compose and non-Portainer installations.
+
 ## 0.3.31 — Separate Live Paths & Storage Roots
 
 - Separated the four live LayerVault locations from the administrator-approved parent roots used by **Apply & restart**.

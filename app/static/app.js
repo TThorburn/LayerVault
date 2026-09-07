@@ -531,6 +531,7 @@ function storageSettingsHtml(storage={}){
     <div class="settings-card-head"><div><span class="kicker">Storage locations</span><h3>Choose where LayerVault keeps its data</h3><p>Use local server folders, attached drives or mounted NAS shares. LayerVault can only use storage roots explicitly mapped by the server administrator.</p></div><span class="settings-card-symbol">⌁</span></div>
     <div class="storage-location-list">${definitions.map(([key,env,label,note,fallback])=>{const item=storage[key]||{};const value=item.host_path||fallback;return `<label class="storage-location-row"><span class="storage-location-icon">${key==='database'?'DB':key==='models'?'3D':key==='backups'?'ZIP':'APP'}</span><span class="grow"><strong>${label}</strong><small>${note}</small><input data-storage-key="${key}" data-storage-env="${env}" value="${esc(value)}" spellcheck="false" aria-label="${label} host path"><em>Currently used inside LayerVault at ${esc(item.container_path||'after restart')}</em></span><span class="storage-path-state ${item.writable?'ready':'pending'}"><i></i>${item.writable?'Ready':'Unavailable'}</span></label>`}).join('')}</div>
     <div class="storage-help"><span>Available roots</span>${roots.length?roots.map(root=>`<code title="Mapped inside the container at ${esc(root.container_path)}">${esc(root.host_path)}</code>`).join(''):'<code>None mapped yet</code>'}<small>To add a new disk or share, map it to a storage slot in Portainer and redeploy once. Subfolders can then be changed here.</small></div>
+    <div class="storage-portainer"><span class="storage-location-icon">P</span><div class="grow"><strong>Portainer one-click remount</strong><small>${storage.portainer_webhook_configured?'Connected. New host folders and mounted shares can be applied without editing stack variables.':'Paste this stack’s Portainer webhook once to let Apply mount completely new locations and redeploy this stack.'}</small><input id="portainerStorageWebhook" type="password" autocomplete="off" placeholder="${storage.portainer_webhook_configured?'Webhook saved — paste a replacement to change it':'https://portainer:9443/api/stacks/webhooks/…'}" aria-label="Portainer stack webhook URL"><label class="storage-tls-option"><input id="portainerAllowInsecureTls" type="checkbox" ${storage.portainer_allow_insecure_tls?'checked':''}><span>Allow Portainer’s local self-signed HTTPS certificate</span></label></div><button class="small-btn" id="saveStorageWebhook" type="button">${storage.portainer_webhook_configured?'Replace':'Connect'}</button>${storage.portainer_webhook_configured?'<button class="small-btn" id="removeStorageWebhook" type="button">Remove</button>':''}</div>
     <div class="settings-card-actions"><small>${storage.apply_enabled?'Apply copies existing data, keeps the old copy as a safety net, saves the mapping and restarts LayerVault.':'Redeploy with the updated Compose file to enable safe one-click storage changes.'}</small><button class="ghost" id="downloadStorageEnv" type="button">Download settings</button><button class="primary" id="applyStorageBtn" type="button" ${storage.apply_enabled?'':'disabled'}>Apply &amp; restart</button></div>
   </section>`;
 }
@@ -564,6 +565,16 @@ async function applyStorageSettings(){
     };
     poll();
   }catch(err){toast(err.message,true);button.disabled=false;button.textContent='Apply & restart';}
+}
+async function saveStorageWebhook(remove=false){
+  const input=$('#portainerStorageWebhook');
+  const url=remove?'':input.value.trim();
+  if(!remove&&!url){toast('Paste the Portainer stack webhook URL first',true);return;}
+  try{
+    await api('/api/settings/storage/portainer-webhook',jsonOpt('POST',{url,allow_insecure_tls:$('#portainerAllowInsecureTls')?.checked||false}));
+    toast(remove?'Portainer webhook removed':'Portainer one-click remount connected');
+    renderSettings();
+  }catch(err){toast(err.message,true);}
 }
 function scheduleFormHtml(item={}, scopes=[]) {
   const chosen=item.scopes?.length?item.scopes:scopes.map(x=>x.id);
@@ -625,6 +636,8 @@ async function renderSettings() {
   $$('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice,true));
   $('#downloadStorageEnv').onclick=downloadStorageEnvironment;
   $('#applyStorageBtn').onclick=applyStorageSettings;
+  $('#saveStorageWebhook').onclick=()=>saveStorageWebhook(false);
+  if($('#removeStorageWebhook'))$('#removeStorageWebhook').onclick=()=>saveStorageWebhook(true);
   $('#newBackupScheduleBtn').onclick=()=>backupScheduleModal();
   $$('[data-backup-schedule]').forEach(button=>button.onclick=()=>backupScheduleModal(button.dataset.backupSchedule));
   $$('[data-delete-backup]').forEach(button=>button.onclick=async()=>{const item=settings.backups.find(x=>x.id===button.dataset.deleteBackup);if(!(await confirmAction('Delete backup file?',`${item?.file_name||'This archive'} will be permanently removed.`)))return;await api(`/api/settings/backups/${button.dataset.deleteBackup}`,{method:'DELETE'});toast('Backup file deleted');renderSettings();});

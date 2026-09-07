@@ -15,7 +15,7 @@ os.environ["DATA_DIR"] = str(data_dir)
 from app.main import BACKUP_DIR, FILES_DIR, TOOLPATH_DIR, app  # noqa: E402
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.31", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.32", "schema": 128}
 
 (FILES_DIR / "sample-model.stl").write_bytes(b"solid sample\nendsolid sample\n")
 (TOOLPATH_DIR / "sample-job.gcode").write_bytes(b"; sample print file\n")
@@ -46,7 +46,7 @@ with zipfile.ZipFile(archive_path) as archive:
     assert "files/models/sample-model.stl" in names
     assert "files/job-files/sample-job.gcode" in names
     manifest = json.loads(archive.read("manifest.json"))
-    assert manifest["app_version"] == "0.3.31"
+    assert manifest["app_version"] == "0.3.32"
     assert manifest["schema_version"] == 128
     assert manifest["scopes"] == scopes
 
@@ -85,4 +85,4 @@ assert client.delete(f"/api/settings/backups/{backup['id']}").json() == {"ok": T
 assert not archive_path.exists()
 assert client.get("/api/settings/backups").json()["backups"] == []
 
-print("LayerVault v0.3.31 scoped backup and schedule regression: PASS")
+print("LayerVault v0.3.32 scoped backup and schedule regression: PASS")

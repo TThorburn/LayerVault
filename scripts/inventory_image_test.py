@@ -8,7 +8,7 @@ from app.main import app, DB_PATH, CUSTOM_IMAGE_DIR
 import sqlite3
 
 c=TestClient(app)
-assert c.get('/health').json()['version']=='0.3.31'
+assert c.get('/health').json()['version']=='0.3.32'
 
 def picture(rgb):
     im=Image.new('RGB',(640,480),rgb)
@@ -47,4 +47,4 @@ with sqlite3.connect(DB_PATH) as conn:
     bindings=conn.execute('select count(*) from custom_image_bindings').fetchone()[0]
 assert assets==3 and bindings>=4
 assert len(list(CUSTOM_IMAGE_DIR.glob('*.webp')))==3
-print('LayerVault v0.3.31 reusable inventory image cache: PASS')
+print('LayerVault v0.3.32 reusable inventory image cache: PASS')

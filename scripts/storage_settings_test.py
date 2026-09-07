@@ -33,10 +33,11 @@ os.environ.update({
 })
 
 from app.main import BACKUP_DIR, DATABASE_DIR, DB_PATH, FILES_DIR, app  # noqa: E402
+import app.main as main_module  # noqa: E402
 
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.31", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.32", "schema": 128}
 assert DB_PATH == database_dir.resolve() / "layervault.db"
 assert FILES_DIR == models_dir.resolve()
 assert BACKUP_DIR == backups_dir.resolve()
@@ -50,6 +51,11 @@ assert locations["backups"]["host_path"] == "//BACKUP-NAS/layervault"
 assert all(locations[key]["writable"] for key in ("workspace", "database", "models", "backups"))
 assert locations["apply_enabled"] is True
 assert locations["roots"][0]["host_path"] == "/srv/portable-storage"
+assert locations["portainer_webhook_configured"] is False
+assert client.post("/api/settings/storage/portainer-webhook", json={"url": "https://portainer.example/api/stacks/webhooks/test-token"}).status_code == 200
+assert client.get("/api/settings/backups").json()["storage"]["portainer_webhook_configured"] is True
+assert client.post("/api/settings/storage/portainer-webhook", json={"url": "file:///etc/passwd"}).status_code == 400
+assert client.post("/api/settings/storage/portainer-webhook", json={"url": ""}).json()["configured"] is False
 
 (data_dir / "workspace-marker.txt").write_text("workspace", encoding="utf-8")
 (models_dir / "model-marker.stl").write_text("solid marker\nendsolid marker\n", encoding="utf-8")
@@ -76,6 +82,22 @@ blocked = client.post("/api/settings/storage/apply", json={
     "workspace": "/etc/layervault", "database": "/etc/layervault", "models": "/etc/layervault", "backups": "/etc/layervault"
 })
 assert blocked.status_code == 400
+client.post("/api/settings/storage/portainer-webhook", json={"url": "https://portainer.example/api/stacks/webhooks/test-token", "allow_insecure_tls": True})
+webhook_calls = []
+main_module._trigger_portainer_storage_remount = lambda paths: webhook_calls.append(paths)
+remount = client.post("/api/settings/storage/apply", json={
+    "workspace": "/new-host/LayerVault-Data",
+    "database": "/new-host/database",
+    "models": "/new-host/STLs",
+    "backups": "/new-host/backups",
+})
+assert remount.status_code == 202 and remount.json()["state"] == "remounting", remount.text
+deadline = time.monotonic() + 2
+while time.monotonic() < deadline and not webhook_calls:
+    time.sleep(0.01)
+assert webhook_calls and webhook_calls[0]["models"] == "/new-host/STLs"
+assert main_module.STORAGE_PENDING_FILE.is_file()
+main_module.STORAGE_PENDING_FILE.unlink()
 
 compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
 service = compose["services"]["layervault"]
@@ -92,9 +114,11 @@ css = (ROOT / "app/static/styles.css").read_text(encoding="utf-8")
 assert "function storageSettingsHtml" in js
 assert "function downloadStorageEnvironment" in js
 assert "function applyStorageSettings" in js
+assert "function saveStorageWebhook" in js
+assert "Portainer one-click remount" in js
 assert "Apply &amp; restart" in js
 for theme in ("ocean", "orchid", "forest"):
     assert f"id:'{theme}'" in js
     assert f'data-theme="{theme}"' in css
 
-print("LayerVault v0.3.31 safe portable storage apply and expanded glass themes: PASS")
+print("LayerVault v0.3.32 safe portable storage apply and expanded glass themes: PASS")

@@ -18,7 +18,7 @@ assert pm3_path.is_file(), f"Missing PM3 fixture: {pm3_path}"
 assert three_mf_path.is_file(), f"Missing G-code 3MF fixture: {three_mf_path}"
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.31", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.32", "schema": 128}
 
 resin_printer = client.post("/api/printers", json={
     "name": "Anycubic Photon M3", "manufacturer": "Anycubic", "model": "Photon M3",
@@ -99,4 +99,4 @@ assert fdm_job["printer_id"] == fdm_printer["id"]
 assert fdm_job["duration_minutes"] == 329
 assert abs(fdm_job["material_used"] - 53.38) < 0.001
 
-print("LayerVault v0.3.31 real PM3 + G-code 3MF estimation and automatic setup regression: PASS")
+print("LayerVault v0.3.32 real PM3 + G-code 3MF estimation and automatic setup regression: PASS")
