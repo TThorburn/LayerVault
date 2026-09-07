@@ -8,4 +8,4 @@ assert 'data-page="uvtools"' not in html
 assert 'renderUvtools' not in js
 assert 'uvtools' not in compose['services']
 assert 'uvtools' in js  # printer catalogue data source remains available
-print('LayerVault v0.3.30 retired UVtools runtime and retained catalogue source: PASS')
+print('LayerVault v0.3.31 retired UVtools runtime and retained catalogue source: PASS')

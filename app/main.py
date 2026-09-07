@@ -79,7 +79,7 @@ for p in (DATA_DIR, DATABASE_DIR, FILES_DIR, IMPORT_DIR, BACKUP_DIR, THUMB_DIR, 
 configure_catalog(DATA_DIR)
 configure_printer_catalog(DATA_DIR)
 
-app = FastAPI(title="LayerVault", version="0.3.30")
+app = FastAPI(title="LayerVault", version="0.3.31")
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=APP_DIR / "templates")
 
@@ -3872,11 +3872,20 @@ def _set_storage_apply_status(**values: Any) -> None:
         _storage_apply_status.update(values)
 
 
+def _same_storage_location(first: Path, second: Path) -> bool:
+    try:
+        return os.path.samefile(first, second)
+    except (OSError, ValueError):
+        return first.resolve() == second.resolve()
+
+
 def _copy_storage_tree(source: Path, destination: Path, skip_dirs: list[Path] | None = None, skip_files: list[Path] | None = None) -> None:
     source, destination = source.resolve(), destination.resolve()
-    if source == destination or not source.exists():
+    if not source.exists():
         return
     destination.mkdir(parents=True, exist_ok=True)
+    if _same_storage_location(source, destination):
+        return
     excluded_dirs = {path.resolve() for path in (skip_dirs or []) if path.resolve() != source}
     excluded_files = {path.resolve() for path in (skip_files or [])}
     try:
@@ -3909,8 +3918,8 @@ def _apply_storage_job(destinations: dict[str, Path], host_paths: dict[str, str]
         _copy_storage_tree(BACKUP_DIR, destinations["backups"])
         _set_storage_apply_status(progress=78, message="Creating a safe database copy…")
         target_db = destinations["database"] / "layervault.db"
-        if target_db.resolve() != DB_PATH.resolve():
-            target_db.parent.mkdir(parents=True, exist_ok=True)
+        target_db.parent.mkdir(parents=True, exist_ok=True)
+        if not _same_storage_location(target_db, DB_PATH):
             if target_db.exists():
                 safety_copy = target_db.with_name(f"layervault.pre-apply-{datetime.now().strftime('%Y%m%d-%H%M%S')}.db")
                 shutil.copy2(target_db, safety_copy)

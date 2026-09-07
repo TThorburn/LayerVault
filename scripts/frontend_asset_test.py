@@ -22,7 +22,7 @@ assert '<link rel="stylesheet"' not in r.text
 a=c.get('/health/assets')
 assert a.status_code == 200
 j=a.json()
-assert j['ok'] is True and j['version']=='0.3.30' and j['css_embedded'] is True and j['js_embedded'] is True
+assert j['ok'] is True and j['version']=='0.3.31' and j['css_embedded'] is True and j['js_embedded'] is True
 assert j['css_bytes'] > 100000 and j['js_bytes'] > 150000
 assert j['assets']['styles.css']['ok'] is True
 assert j['assets']['styles.css']['sha256']
@@ -30,8 +30,8 @@ assert j['assets']['app.js']['ok'] is True
 assert j['assets']['app.js']['sha256']
 assert j['workshop_ok'] is True
 assert j['assets']['manifold.js']['ok'] is True and j['assets']['manifold.wasm']['ok'] is True
-css=c.get('/static/styles.css?v=0.3.30')
+css=c.get('/static/styles.css?v=0.3.31')
 assert css.status_code == 200 and css.headers['content-type'].startswith('text/css')
-js=c.get('/static/app.js?v=0.3.30')
+js=c.get('/static/app.js?v=0.3.31')
 assert js.status_code == 200 and "import * as THREE" not in js.text and "import('three')" in js.text
-print('LayerVault v0.3.30 frontend asset delivery regression: PASS')
+print('LayerVault v0.3.31 frontend asset delivery regression: PASS')

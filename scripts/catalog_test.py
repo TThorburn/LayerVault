@@ -72,7 +72,7 @@ try:
     assert catalog_module._fetch_text('stale-test','https://invalid.example.test',ttl=0)=='cached fallback'
 finally:
     catalog_module.httpx.Client=orig_client
-assert c.get('/health').json()['version']=='0.3.30'
+assert c.get('/health').json()['version']=='0.3.31'
 providers=c.get('/api/catalog/providers').json()
 assert {p['id'] for p in providers}=={'spoolman','openresin','manufacturer_resin'}
 assert c.get('/api/catalog/search',params={'q':'PETG blue','provider':'openprinttag'}).status_code==400
@@ -149,4 +149,4 @@ init_db()
 legacy_after=next(x for x in c.get('/api/materials').json() if x['id']==legacy['id'])
 assert legacy_after['source_provider']=='' and legacy_after['source_key']==''
 
-print('LayerVault v0.3.30 material catalogue/provider test: PASS')
+print('LayerVault v0.3.31 material catalogue/provider test: PASS')

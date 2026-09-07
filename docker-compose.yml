@@ -17,13 +17,13 @@ services:
       SKETCHFORGE_PROJECTS_DIR: /data/sketchforge/projects
       STORAGE_CONFIG_FILE: /config/storage.json
       STORAGE_RESTART_ON_APPLY: "true"
-      STORAGE_ROOT_1_HOST: ${LAYERVAULT_DATA_PATH:-./data}
+      STORAGE_ROOT_1_HOST: ${LAYERVAULT_STORAGE_ROOT_1:-./data}
       STORAGE_ROOT_1_CONTAINER: /storage-roots/1
-      STORAGE_ROOT_2_HOST: ${LAYERVAULT_DATABASE_PATH:-./data}
+      STORAGE_ROOT_2_HOST: ${LAYERVAULT_STORAGE_ROOT_2:-./data}
       STORAGE_ROOT_2_CONTAINER: /storage-roots/2
-      STORAGE_ROOT_3_HOST: ${LAYERVAULT_MODELS_PATH:-./data/files}
+      STORAGE_ROOT_3_HOST: ${LAYERVAULT_STORAGE_ROOT_3:-./data/files}
       STORAGE_ROOT_3_CONTAINER: /storage-roots/3
-      STORAGE_ROOT_4_HOST: ${LAYERVAULT_BACKUPS_PATH:-./data/backups}
+      STORAGE_ROOT_4_HOST: ${LAYERVAULT_STORAGE_ROOT_4:-./data/backups}
       STORAGE_ROOT_4_CONTAINER: /storage-roots/4
       LAYERVAULT_DATA_PATH: ${LAYERVAULT_DATA_PATH:-./data}
       LAYERVAULT_DATABASE_PATH: ${LAYERVAULT_DATABASE_PATH:-./data}
@@ -52,16 +52,16 @@ services:
       # Safe storage roots used by Settings > Apply & restart. These expose only
       # the folders selected by the administrator, never the whole host system.
       - type: bind
-        source: ${LAYERVAULT_DATA_PATH:-./data}
+        source: ${LAYERVAULT_STORAGE_ROOT_1:-./data}
         target: /storage-roots/1
       - type: bind
-        source: ${LAYERVAULT_DATABASE_PATH:-./data}
+        source: ${LAYERVAULT_STORAGE_ROOT_2:-./data}
         target: /storage-roots/2
       - type: bind
-        source: ${LAYERVAULT_MODELS_PATH:-./data/files}
+        source: ${LAYERVAULT_STORAGE_ROOT_3:-./data/files}
         target: /storage-roots/3
       - type: bind
-        source: ${LAYERVAULT_BACKUPS_PATH:-./data/backups}
+        source: ${LAYERVAULT_STORAGE_ROOT_4:-./data/backups}
         target: /storage-roots/4
 
   sketchforge:

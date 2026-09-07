@@ -21,7 +21,7 @@ def triangle_stl(name: str) -> bytes:
 
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.30", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.31", "schema": 128}
 first = client.post("/api/models/upload", files={"file": ("captain.stl", triangle_stl("captain"), "model/stl")}).json()["model"]
 second = client.post("/api/models/upload", files={"file": ("goblin.stl", triangle_stl("goblin"), "model/stl")}).json()["model"]
 
@@ -52,4 +52,4 @@ client.delete(f"/api/jobs/{job['id']}")
 models = {item["id"]: item for item in client.get("/api/models").json()}
 assert models[first["id"]]["print_count"] == 0
 
-print("LayerVault v0.3.30 multi-model print manifest regression: PASS")
+print("LayerVault v0.3.31 multi-model print manifest regression: PASS")

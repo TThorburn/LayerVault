@@ -50,4 +50,4 @@ assert '.upload-rename-item' in css and '.material-photo-editor' in css
 assert 'OpenPrintTag' not in js and 'openprinttag' not in js
 assert 'generated-material' in js and '.filament-spool .generated-pack' in css
 
-print("LayerVault v0.3.30 simplified glass UI contract: PASS")
+print("LayerVault v0.3.31 simplified glass UI contract: PASS")

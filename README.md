@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 0.3.30" src="https://img.shields.io/badge/version-0.3.30-476dff?style=for-the-badge">
+  <img alt="Version 0.3.31" src="https://img.shields.io/badge/version-0.3.31-476dff?style=for-the-badge">
   <img alt="AGPL-3.0-only" src="https://img.shields.io/badge/licence-AGPL--3.0-6547e8?style=for-the-badge">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker&logoColor=white">
   <img alt="Self-hosted" src="https://img.shields.io/badge/self--hosted-LAN--first-17a673?style=for-the-badge">
@@ -86,11 +86,17 @@ LAYERVAULT_DATA_PATH=./data
 LAYERVAULT_DATABASE_PATH=./data
 LAYERVAULT_MODELS_PATH=//PRINT-NAS/3d-models
 LAYERVAULT_BACKUPS_PATH=//BACKUP-NAS/layervault
+
+# Parent folders that the Settings page is allowed to use
+LAYERVAULT_STORAGE_ROOT_1=./data
+LAYERVAULT_STORAGE_ROOT_2=//PRINT-NAS
+LAYERVAULT_STORAGE_ROOT_3=//BACKUP-NAS
+LAYERVAULT_STORAGE_ROOT_4=/mnt/another-mounted-share
 ```
 
-These four locations are also LayerVault's administrator-approved storage roots. After deploying v0.3.30, Settings can move each category to the root itself or any subfolder below it: enter the paths, choose **Apply & restart**, and LayerVault copies the existing data before switching. The original files are retained as a safety copy.
+The first four values are the live locations used on startup. The `STORAGE_ROOT` values are broader administrator-approved folders that Settings may use. After deploying v0.3.31, enter a root or any subfolder below it, choose **Apply & restart**, and LayerVault copies the existing data before switching. The original files are retained as a safety copy.
 
-To use a completely new disk or network share, change one of these four variables in Portainer (or `.env`) and redeploy once. It then becomes available to the Apply button. This keeps the web application away from the Docker socket and from unrelated host files.
+To make a completely new disk or network share available, change one of the four `LAYERVAULT_STORAGE_ROOT_*` variables in Portainer (or `.env`) and redeploy once. This keeps the web application away from the Docker socket and from unrelated host files.
 
 | Setting | Purpose | Default |
 |---|---|---|
@@ -98,10 +104,13 @@ To use a completely new disk or network share, change one of these four variable
 | `LAYERVAULT_DATABASE_PATH` | SQLite database directory | `./data` |
 | `LAYERVAULT_MODELS_PATH` | Original model files | `./data/files` |
 | `LAYERVAULT_BACKUPS_PATH` | Manual and scheduled backup archives | `./data/backups` |
+| `LAYERVAULT_STORAGE_ROOT_1` … `_4` | Administrator-approved parent folders available to Apply & restart | Current local data defaults |
 | `LAYERVAULT_TIMEZONE` | Timestamps and backup schedules | `Europe/London` |
 | `APP_USERNAME` / `APP_PASSWORD` | Optional HTTP Basic authentication for LayerVault | Disabled when the password is blank |
 
 Windows paths can use forward slashes, for example `D:/LayerVault/database` or `//server/share/models`. Docker Desktop must be allowed to access the selected location. On Linux, mount a NAS share on the host first and use its absolute mount path.
+
+There are no built-in `/mnt`, `/srv` or drive-letter assumptions. Valid roots can include Linux paths such as `/media/storage` or `/home/alex/printing`, Windows paths such as `D:/LayerVault`, and accessible UNC shares such as `//NAS/Media`. The values are chosen independently by each installation.
 
 Keep the live SQLite database on a local Linux filesystem where possible; use the NAS for model originals and backup archives. SMB/NFS locking interruptions can corrupt a live SQLite database even though those shares are suitable for ordinary files.
 
@@ -154,7 +163,7 @@ LayerVault does not bundle or launch the DragonFruit, OrcaSlicer or UVtools appl
 
 ## Release notes
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.30 adds portable administrator-mapped storage roots and safe, non-destructive **Apply & restart** storage changes.
+See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.31 adds portable administrator-mapped storage roots and safe, non-destructive **Apply & restart** storage changes.
 
 ## Licence
 

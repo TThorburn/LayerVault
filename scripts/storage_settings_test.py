@@ -36,7 +36,7 @@ from app.main import BACKUP_DIR, DATABASE_DIR, DB_PATH, FILES_DIR, app  # noqa: 
 
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.30", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.31", "schema": 128}
 assert DB_PATH == database_dir.resolve() / "layervault.db"
 assert FILES_DIR == models_dir.resolve()
 assert BACKUP_DIR == backups_dir.resolve()
@@ -85,7 +85,7 @@ assert mounts["/storage/database"] == "${LAYERVAULT_DATABASE_PATH:-./data}"
 assert mounts["/storage/models"] == "${LAYERVAULT_MODELS_PATH:-./data/files}"
 assert mounts["/storage/backups"] == "${LAYERVAULT_BACKUPS_PATH:-./data/backups}"
 assert mounts["/config"] == "layervault-storage-config"
-assert mounts["/storage-roots/1"] == "${LAYERVAULT_DATA_PATH:-./data}"
+assert mounts["/storage-roots/1"] == "${LAYERVAULT_STORAGE_ROOT_1:-./data}"
 
 js = (ROOT / "app/static/app.js").read_text(encoding="utf-8")
 css = (ROOT / "app/static/styles.css").read_text(encoding="utf-8")
@@ -97,4 +97,4 @@ for theme in ("ocean", "orchid", "forest"):
     assert f"id:'{theme}'" in js
     assert f'data-theme="{theme}"' in css
 
-print("LayerVault v0.3.30 safe portable storage apply and expanded glass themes: PASS")
+print("LayerVault v0.3.31 safe portable storage apply and expanded glass themes: PASS")

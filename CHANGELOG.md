@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.31 — Separate Live Paths & Storage Roots
+
+- Separated the four live LayerVault locations from the administrator-approved parent roots used by **Apply & restart**.
+- Prevented a broad parent share from becoming the live workspace before the user applies a chosen subfolder.
+- Detects when live and destination paths are two container aliases for the same host folder, avoiding needless self-copy errors.
+- Added explicit `LAYERVAULT_STORAGE_ROOT_1` through `LAYERVAULT_STORAGE_ROOT_4` deployment variables and clearer setup documentation.
+
 ## 0.3.30 — Portable Storage Apply
 
 - Added an **Apply & restart** action to Settings for safe, non-destructive storage relocation.
