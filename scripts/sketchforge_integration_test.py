@@ -17,7 +17,7 @@ from app.main import SKETCHFORGE_PROJECTS_DIR, app  # noqa: E402
 
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.32", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.33", "schema": 128}
 
 html = client.get("/").text
 assert '>Workshop</button>' in html
@@ -83,4 +83,4 @@ archive = data_dir / "backups" / backup.json()["file_name"]
 with zipfile.ZipFile(archive) as packaged:
     assert "files/sketchforge-projects/integration-check.skf" in packaged.namelist()
 
-print("LayerVault v0.3.32 browser-native SketchForge Workshop integration: PASS")
+print("LayerVault v0.3.33 browser-native SketchForge Workshop integration: PASS")

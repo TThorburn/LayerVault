@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 0.3.32" src="https://img.shields.io/badge/version-0.3.32-476dff?style=for-the-badge">
+  <img alt="Version 0.3.33" src="https://img.shields.io/badge/version-0.3.33-476dff?style=for-the-badge">
   <img alt="AGPL-3.0-only" src="https://img.shields.io/badge/licence-AGPL--3.0-6547e8?style=for-the-badge">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker&logoColor=white">
   <img alt="Self-hosted" src="https://img.shields.io/badge/self--hosted-LAN--first-17a673?style=for-the-badge">
@@ -94,13 +94,13 @@ LAYERVAULT_STORAGE_ROOT_3=//BACKUP-NAS
 LAYERVAULT_STORAGE_ROOT_4=/mnt/another-mounted-share
 ```
 
-The first four values are the live locations used on startup. The `STORAGE_ROOT` values are broader administrator-approved folders that Settings may use. After deploying v0.3.32, enter a root or any subfolder below it, choose **Apply & restart**, and LayerVault copies the existing data before switching. The original files are retained as a safety copy.
+The first four values are the live locations used on startup. The `STORAGE_ROOT` values are broader administrator-approved folders that Settings may use. After deploying v0.3.33, enter a root or any subfolder below it, choose **Apply & restart**, and LayerVault copies the existing data before switching. The original files are retained as a safety copy.
 
 To make a completely new disk or network share available, change one of the four `LAYERVAULT_STORAGE_ROOT_*` variables in Portainer (or `.env`) and redeploy once. This keeps the web application away from the Docker socket and from unrelated host files.
 
 ### One-click new locations with Portainer
 
-LayerVault v0.3.32 can perform that remount automatically for Portainer stacks:
+LayerVault v0.3.33 can perform that remount automatically for Portainer stacks:
 
 1. Open the LayerVault stack in Portainer and enable its **Stack webhook**.
 2. Copy the generated webhook URL.
@@ -176,7 +176,7 @@ LayerVault does not bundle or launch the DragonFruit, OrcaSlicer or UVtools appl
 
 ## Release notes
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.32 adds Portainer-assisted one-click remounting alongside portable administrator-mapped storage roots.
+See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.33 adds saved front/back model lighting, soft preview shadows and searchable reusable tag pickers.
 
 ## Licence
 

@@ -36,10 +36,10 @@ assert child['parent_model_id']==m1['id'] and child['root_model_id']==m1['id']
 
 # Cached thumbnail camera: root overrides flow through lineage until a child overrides them.
 default_view=c.get(f"/api/models/{m1['id']}/thumbnail-view").json(); assert default_view['effective']['yaw_deg']==22.0 and default_view['local']=={}
-custom={'yaw_deg':8,'pitch_deg':24,'zoom':1.08}
+custom={'yaw_deg':8,'pitch_deg':24,'zoom':1.08,'light_depth':-.7}
 assert c.put(f"/api/models/{m1['id']}/thumbnail-view",json=custom).status_code==200
 thumb_custom=c.get(f"/api/models/{m1['id']}/thumbnail"); assert thumb_custom.status_code==200 and thumb_custom.content!=thumb.content
-inherited=c.get(f"/api/models/{child['id']}/thumbnail-view").json(); assert inherited['inherited'] is True and inherited['effective']['yaw_deg']==8.0
+inherited=c.get(f"/api/models/{child['id']}/thumbnail-view").json(); assert inherited['inherited'] is True and inherited['effective']['yaw_deg']==8.0 and inherited['effective']['light_depth']==-.7
 assert c.put(f"/api/models/{child['id']}/thumbnail-view",json={'yaw_deg':-35,'pitch_deg':15,'zoom':1}).status_code==200
 c.put(f"/api/models/{m1['id']}/thumbnail-view",json={'yaw_deg':30,'pitch_deg':20,'zoom':1})
 child_custom=c.get(f"/api/models/{child['id']}/thumbnail-view").json(); assert child_custom['effective']['yaw_deg']==-35.0 and child_custom['inherited'] is False
@@ -167,5 +167,5 @@ assert c.get(f"/api/materials/{mat['id']}").json()['remaining_amount']==190
 for path in ['/api/export/print-history.csv','/api/export/materials.csv']:
     exp=c.get(path); assert exp.status_code==200 and exp.headers['content-type'].startswith('text/csv') and len(exp.text.splitlines())>=2
 
-assert c.get('/health').json()['version']=='0.3.32'
-print('LayerVault v0.3.32 integration test: PASS')
+assert c.get('/health').json()['version']=='0.3.33'
+print('LayerVault v0.3.33 integration test: PASS')

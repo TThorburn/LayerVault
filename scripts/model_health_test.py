@@ -19,7 +19,7 @@ v=[(0.,0.,0.),(10.,0.,0.),(10.,10.,0.),(0.,10.,0.),(0.,0.,10.),(10.,0.,10.),(10.
 faces=[(0,2,1),(0,3,2),(4,5,6),(4,6,7),(0,1,5),(0,5,4),(1,2,6),(1,6,5),(2,3,7),(2,7,6),(3,0,4),(3,4,7)]
 tris=[tuple(v[i] for i in f) for f in faces]
 client=TestClient(app)
-assert client.get('/health').json()['version']=='0.3.32'
+assert client.get('/health').json()['version']=='0.3.33'
 
 # healthy cube
 r=client.post('/api/models/upload',files={'file':('cube.stl',binary_stl(tris),'model/stl')},data={'title':'Healthy Cube'})
@@ -145,4 +145,4 @@ assert damaged_after['score']>damaged_before['score'],damaged_after
 assert damaged_after['metrics']['boundary_edges']==0 and damaged_after['metrics']['watertight'] is True,damaged_after
 assert damaged_after['metrics']['components']==5,damaged_after
 
-print('LayerVault v0.3.32 Bluebell sheet-pair + duplicate identity + 15-edge recovery: PASS')
+print('LayerVault v0.3.33 Bluebell sheet-pair + duplicate identity + 15-edge recovery: PASS')

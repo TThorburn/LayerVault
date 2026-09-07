@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.33 — Model Lighting & Searchable Tags
+
+- Added a front-to-back key-light slider to the interactive model preview with soft model and ground shadows.
+- Saves the chosen lighting direction alongside the catalogue camera angle and applies it to regenerated thumbnail shading.
+- Added searchable tag dropdowns to model upload, model editing, project editing and bulk-tag actions while retaining free-text tag creation.
+- Combined model and project tags in the shared suggestion catalogue and avoids suggesting tags already selected.
+
 ## 0.3.32 — Portainer One-click Remount
 
 - Added an optional stack-webhook connection in Settings so a completely new host folder or mounted share can be applied without manually editing environment variables.

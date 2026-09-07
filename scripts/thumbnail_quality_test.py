@@ -47,6 +47,6 @@ with tempfile.TemporaryDirectory() as td:
     occupancy = solid / (crop.width * crop.height)
     assert occupancy > 0.45, f'dense surface is still fragmented (occupancy={occupancy:.3f})'
     alt=td/'dense-grid-alt.webp'; assert generate_thumbnail(stl,alt,view={'yaw_deg':-30,'pitch_deg':28,'zoom':1.05}); assert alt.read_bytes()!=out.read_bytes()
-    assert THUMB_RENDER_VERSION == '3'
+    assert THUMB_RENDER_VERSION == '4'
 
 print('LayerVault Pass 9 dense thumbnail quality test: PASS')

@@ -49,5 +49,9 @@ assert 'id="editMaterialPhoto"' in js and 'Choose replacement photo' in js
 assert '.upload-rename-item' in css and '.material-photo-editor' in css
 assert 'OpenPrintTag' not in js and 'openprinttag' not in js
 assert 'generated-material' in js and '.filament-spool .generated-pack' in css
+assert 'function tagPickerField' in js and 'function wireTagPickers' in js
+assert 'data-tag-picker' in js and '.tag-picker-menu' in css
+assert 'id="detailLightDepth"' in js and 'light_depth' in js
+assert '.thumbnail-light-control' in css and 'PCFSoftShadowMap' in js
 
-print("LayerVault v0.3.32 simplified glass UI contract: PASS")
+print("LayerVault v0.3.33 simplified glass UI contract: PASS")

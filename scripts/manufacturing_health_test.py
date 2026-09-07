@@ -20,7 +20,7 @@ def box(x,y,z,off=(0,0,0),flip=False):
     return [tuple(v[i] for i in q) for q in f]
 
 c=TestClient(app)
-assert c.get('/health').json()['version']=='0.3.32'
+assert c.get('/health').json()['version']=='0.3.33'
 resin=c.post('/api/printers',json={'name':'20um Resin','technology':'MSLA / Resin','build_x':120,'build_y':68,'build_z':150,'resolution_x':6000,'resolution_y':3400,'xy_resolution_x_um':20,'xy_resolution_y_um':20}).json()
 fdm=c.post('/api/printers',json={'name':'0.4 FDM','technology':'FDM','build_x':180,'build_y':180,'build_z':180,'nozzle_mm':0.4}).json()
 
@@ -93,4 +93,4 @@ fh_changed=c.get(f'/api/models/{mid}/health',params={'printer_id':fdm['id']}).js
 assert fh_changed['printer_signature'] != old_sig
 assert fh_changed['thickness']['critical_threshold_mm'] > fh['thickness']['critical_threshold_mm']
 
-print('LayerVault v0.3.32 inward-material manufacturing-health regression: PASS')
+print('LayerVault v0.3.33 inward-material manufacturing-health regression: PASS')

@@ -222,11 +222,36 @@ function tagsHtml(tags = [], clickable = false) {
   return tags.slice(0, 4).map(t => `<span class="tag" ${clickable ? `data-tag-filter="${esc(t)}"` : ''}>${esc(t)}</span>`).join('')
     + (tags.length > 4 ? `<span class="tag">+${tags.length - 4}</span>` : '');
 }
+function tagPickerField(name,label,value='',extra='wide',placeholder='Start typing or choose an existing tag…') {
+  return `<div class="field ${extra} tag-picker-field"><label>${esc(label)}</label><div class="tag-picker-input"><input name="${esc(name)}" value="${esc(value)}" placeholder="${esc(placeholder)}" autocomplete="off" data-tag-picker><span aria-hidden="true">⌄</span></div><div class="tag-picker-menu hidden" role="listbox"></div></div>`;
+}
+function wireTagPickers(root=document) {
+  $$('[data-tag-picker]',root).forEach(input=>{
+    if(input.dataset.tagPickerReady)return;input.dataset.tagPickerReady='true';
+    const menu=$('.tag-picker-menu',input.closest('.tag-picker-field'));
+    const existing=()=>[...new Set(state.taxonomy.tags||[])].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}));
+    const render=(showAll=false)=>{
+      const endsWithComma=/,\s*$/.test(input.value),parts=input.value.split(',').map(x=>x.trim()).filter(Boolean);
+      const query=showAll||endsWithComma?'':(parts.at(-1)||'');
+      const complete=showAll||endsWithComma?parts:parts.slice(0,-1),selected=new Set(complete.map(x=>x.toLowerCase()));
+      const matches=existing().filter(tag=>!selected.has(tag.toLowerCase())&&(!query||tag.toLowerCase().includes(query.toLowerCase()))).slice(0,14);
+      const custom=query&&!existing().some(tag=>tag.toLowerCase()===query.toLowerCase())?`<button type="button" data-tag-choice="${esc(query)}"><span>＋</span><strong>Use “${esc(query)}”</strong><small>New tag</small></button>`:'';
+      menu.dataset.append=showAll||endsWithComma?'true':'false';
+      menu.innerHTML=matches.map(tag=>`<button type="button" data-tag-choice="${esc(tag)}"><span>✓</span><strong>${esc(tag)}</strong></button>`).join('')+custom;
+      menu.classList.toggle('hidden',!menu.innerHTML);
+    };
+    const choose=button=>{const value=button.dataset.tagChoice.trim();let parts=input.value.split(',').map(x=>x.trim()).filter(Boolean);if(menu.dataset.append!=='true'&&parts.length)parts.pop();if(value&&!parts.some(x=>x.toLowerCase()===value.toLowerCase()))parts.push(value);input.value=parts.join(', ')+', ';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();};
+    input.addEventListener('focus',()=>render(true));input.addEventListener('click',()=>render(true));input.addEventListener('input',()=>render(false));
+    input.addEventListener('keydown',event=>{if(event.key==='Escape'){menu.classList.add('hidden');return;}if(event.key==='Enter'&&!menu.classList.contains('hidden')){const first=$('[data-tag-choice]',menu);if(first){event.preventDefault();choose(first);}}});
+    menu.addEventListener('mousedown',event=>event.preventDefault());menu.addEventListener('click',event=>{const button=event.target.closest('[data-tag-choice]');if(button)choose(button);});
+    input.addEventListener('blur',()=>setTimeout(()=>{menu.classList.add('hidden');input.value=input.value.split(',').map(x=>x.trim()).filter(Boolean).join(', ');},120));
+  });
+}
 function statusClass(s = '') { return String(s).toLowerCase().replace(/\s+/g, '-'); }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 function previewable(m) { return PREVIEWABLE.has(m.extension); }
-const THUMB_RENDER_VERSION = '3';
-const DEFAULT_THUMB_VIEW = { yaw_deg: 22, pitch_deg: 18, zoom: 1 };
+const THUMB_RENDER_VERSION = '4';
+const DEFAULT_THUMB_VIEW = { yaw_deg: 22, pitch_deg: 18, zoom: 1, light_depth: .65 };
 function thumbUrl(m) { const rev=encodeURIComponent(String(m.updated_at||'').slice(0,23)); return `/api/models/${m.id}/thumbnail?v=${THUMB_RENDER_VERSION}-${encodeURIComponent(m.sha256?.slice(0,8) || '')}-${rev}`; }
 function lazyThumbAttrs(m, alt='') { return `loading="lazy" decoding="async" fetchpriority="low" src="${thumbUrl(m)}" alt="${esc(alt)}"`; }
 function techFamily(v='') { return /resin|msla|sla|dlp/i.test(v) ? 'Resin' : 'FDM'; }
@@ -858,7 +883,7 @@ async function bulkActionModal(action) {
     $('#applyBulkValue').onclick=async()=>{await api('/api/models/bulk',jsonOpt('POST',{ids,updates:{[action]:$('#bulkValue').value}}));toast(`${action[0].toUpperCase()+action.slice(1)} updated`);closeModal();updateLibrary();}; return;
   }
   if(action==='tags'){
-    openModal('Add tags',`${field('bulk_tags','Tags to add','','text','wide','miniature, campaign, painted')}`,`<button class="ghost" data-close-modal>Cancel</button><button class="primary" id="applyBulkTags">Add tags</button>`,'Bulk action');
+    openModal('Add tags',`${tagPickerField('bulk_tags','Tags to add','','wide','miniature, campaign, painted')}`,`<button class="ghost" data-close-modal>Cancel</button><button class="primary" id="applyBulkTags">Add tags</button>`,'Bulk action');
     $('#applyBulkTags').onclick=async()=>{await api('/api/models/bulk',jsonOpt('POST',{ids,add_tags:$('[name=bulk_tags]').value}));toast('Tags added');closeModal();updateLibrary();};
   }
 }
@@ -1391,13 +1416,14 @@ function downloadBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
-let detailPreview = { renderer: null, scene: null, camera: null, controls: null, object: null, markerGroup: null, center: null, animation: null, observer: null, baseDistance: 0, viewInfo: null };
+let detailPreview = { renderer: null, scene: null, camera: null, controls: null, object: null, markerGroup: null, ground: null, keyLight: null, center: null, animation: null, observer: null, baseDistance: 0, viewInfo: null, lightDepth: DEFAULT_THUMB_VIEW.light_depth };
 function disposeDetailPreview() {
   if (detailPreview.animation) cancelAnimationFrame(detailPreview.animation);
   detailPreview.observer?.disconnect?.();
   if (detailPreview.object) disposeObject(detailPreview.object);
+  if (detailPreview.ground) { detailPreview.ground.geometry?.dispose?.(); detailPreview.ground.material?.dispose?.(); }
   if (detailPreview.renderer) detailPreview.renderer.dispose();
-  detailPreview = { renderer: null, scene: null, camera: null, controls: null, object: null, markerGroup: null, center: null, animation: null, observer: null, baseDistance: 0, viewInfo: null };
+  detailPreview = { renderer: null, scene: null, camera: null, controls: null, object: null, markerGroup: null, ground: null, keyLight: null, center: null, animation: null, observer: null, baseDistance: 0, viewInfo: null, lightDepth: DEFAULT_THUMB_VIEW.light_depth };
 }
 function thumbnailCameraVector(view=DEFAULT_THUMB_VIEW, distance=1) {
   const yaw=THREE.MathUtils.degToRad(Number(view?.yaw_deg ?? DEFAULT_THUMB_VIEW.yaw_deg));
@@ -1409,6 +1435,14 @@ function applyDetailThumbnailView(view=DEFAULT_THUMB_VIEW) {
   const zoom=Math.max(.72,Math.min(1.30,Number(view?.zoom||1)));
   detailPreview.camera.position.copy(thumbnailCameraVector(view,detailPreview.baseDistance/zoom));
   detailPreview.controls.target.set(0,0,0); detailPreview.controls.update();
+  setDetailLightDepth(Number(view?.light_depth ?? DEFAULT_THUMB_VIEW.light_depth));
+}
+function setDetailLightDepth(value) {
+  const depth=THREE.MathUtils.clamp(Number(value)||0,-1,1);
+  detailPreview.lightDepth=depth;
+  if(detailPreview.keyLight)detailPreview.keyLight.position.set(80,130,depth*150);
+  const slider=$('#detailLightDepth');if(slider&&Number(slider.value)!==Math.round(depth*100))slider.value=String(Math.round(depth*100));
+  const output=$('#detailLightValue');if(output)output.textContent=depth<-.15?'Behind':depth>.15?'In front':'Centred';
 }
 function captureDetailThumbnailView() {
   if(!detailPreview.camera||!detailPreview.controls||!detailPreview.baseDistance)return null;
@@ -1416,7 +1450,7 @@ function captureDetailThumbnailView() {
   const yaw=THREE.MathUtils.radToDeg(Math.atan2(v.x,v.z));
   const pitch=THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(v.y/distance,-1,1)));
   const zoom=THREE.MathUtils.clamp(detailPreview.baseDistance/distance,.72,1.30);
-  return {yaw_deg:Number(yaw.toFixed(2)),pitch_deg:Number(pitch.toFixed(2)),zoom:Number(zoom.toFixed(3))};
+  return {yaw_deg:Number(yaw.toFixed(2)),pitch_deg:Number(pitch.toFixed(2)),zoom:Number(zoom.toFixed(3)),light_depth:Number((detailPreview.lightDepth??DEFAULT_THUMB_VIEW.light_depth).toFixed(3))};
 }
 async function initDetailPreview(model, viewInfo={effective:DEFAULT_THUMB_VIEW}) {
   disposeDetailPreview();
@@ -1438,17 +1472,19 @@ async function initDetailPreview(model, viewInfo={effective:DEFAULT_THUMB_VIEW})
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(panel.clientWidth, 280);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.shadowMap.enabled = false;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   panel.prepend(renderer.domElement);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.autoRotate = false;
   controls.enablePan = false;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xe0e8e8, 2.5));
-  const dir = new THREE.DirectionalLight(0xffffff, 2.6);
-  dir.position.set(80, 130, 90);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xe0e8e8, 1.35));
+  const dir = new THREE.DirectionalLight(0xffffff, 2.8);
+  dir.position.set(80, 130, 97.5);
+  dir.castShadow=true;dir.shadow.mapSize.set(1024,1024);dir.shadow.bias=-.00035;dir.shadow.normalBias=.02;
   scene.add(dir);
-  detailPreview = { renderer, scene, camera, controls, object: null, markerGroup: null, center: null, animation: null, observer: null, baseDistance: 0, viewInfo };
+  detailPreview = { renderer, scene, camera, controls, object: null, markerGroup: null, ground: null, keyLight: dir, center: null, animation: null, observer: null, baseDistance: 0, viewInfo, lightDepth:Number(viewInfo?.effective?.light_depth??DEFAULT_THUMB_VIEW.light_depth) };
   loadModelObject(model, obj => {
     const root = styleLoadedObject(obj, 0x70bfae);
     const box = new THREE.Box3().setFromObject(root);
@@ -1456,6 +1492,10 @@ async function initDetailPreview(model, viewInfo={effective:DEFAULT_THUMB_VIEW})
     const center = box.getCenter(new THREE.Vector3());
     root.position.sub(center);
     const max = Math.max(size.x, size.y, size.z) || 100;
+    root.traverse(child=>{if(child.isMesh){child.castShadow=true;child.receiveShadow=true;}});
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(max*4,max*4),new THREE.ShadowMaterial({color:0x294b55,opacity:.14}));
+    ground.rotation.x=-Math.PI/2;ground.position.y=-size.y/2-max*.006;ground.receiveShadow=true;scene.add(ground);detailPreview.ground=ground;
+    const shadowExtent=max*1.25;Object.assign(dir.shadow.camera,{left:-shadowExtent,right:shadowExtent,top:shadowExtent,bottom:-shadowExtent,near:.1,far:max*8});dir.shadow.camera.updateProjectionMatrix();
     detailPreview.baseDistance=max*2.35;
     camera.near = Math.max(.01, max / 1000);
     camera.far = max * 100;
@@ -1510,6 +1550,7 @@ function openModal(title, body, footer = '', eyebrow = 'LayerVault') {
   $('#modalTitle').textContent = title;
   $('#modalEyebrow').textContent = eyebrow;
   $('#modalBody').innerHTML = body;
+  wireTagPickers($('#modalBody'));
   $('#modalFooter').innerHTML = footer;
   $('#modal').classList.remove('hidden');
   document.body.classList.add('modal-open');
@@ -1622,7 +1663,7 @@ async function modelModal(id, forceHealthRefresh=false) {
     <div class="model-detail-preview" id="detailPreview">
       <div class="detail-preview-fallback"><div><div class="file-orb">${esc(m.extension.slice(1).toUpperCase())}</div><strong>${previewable(m) ? 'Loading 3D preview…' : 'Preview not available'}</strong><span style="display:block;margin-top:4px;font-size:9px">${previewable(m) ? 'Drag to inspect · choose any angle as the catalogue thumbnail' : 'This file type is stored and catalogued normally.'}</span></div></div>
       <div class="detail-preview-meta"><span class="detail-meta-pill">${esc(m.category)}</span><span class="detail-meta-pill">${esc(dims(m))}</span></div>
-    </div>${previewable(m)?`<div class="thumbnail-view-toolbar"><div><strong id="thumbnailViewState">${thumbViewInfo.local&&Object.keys(thumbViewInfo.local).length?'Custom thumbnail angle':thumbViewInfo.inherited?'Inherited thumbnail angle':'Automatic thumbnail angle'}</strong><small>Rotate or zoom the model, then save the catalogue view.</small></div><div class="mini-actions"><button type="button" class="small-btn" id="setThumbViewBtn">Set current view</button><button type="button" class="small-btn" id="resetThumbViewBtn">${m.parent_model_id?'Use inherited':'Use automatic'}</button></div></div>`:''}`;
+    </div>${previewable(m)?`<div class="thumbnail-view-toolbar"><div><strong id="thumbnailViewState">${thumbViewInfo.local&&Object.keys(thumbViewInfo.local).length?'Custom thumbnail view':thumbViewInfo.inherited?'Inherited thumbnail view':'Automatic thumbnail view'}</strong><small>Rotate, zoom and position the light, then save the catalogue view.</small></div><label class="thumbnail-light-control"><span>Light position <b id="detailLightValue">${Number(thumbViewInfo.effective?.light_depth??.65)<-.15?'Behind':Number(thumbViewInfo.effective?.light_depth??.65)>.15?'In front':'Centred'}</b></span><input id="detailLightDepth" type="range" min="-100" max="100" step="1" value="${Math.round(Number(thumbViewInfo.effective?.light_depth??.65)*100)}"></label><div class="mini-actions"><button type="button" class="small-btn" id="setThumbViewBtn">Set current view</button><button type="button" class="small-btn" id="resetThumbViewBtn">${m.parent_model_id?'Use inherited':'Use automatic'}</button></div></div>`:''}`;
   openModal(m.title, `
     <div class="model-detail-layout">
       <div class="model-detail-preview-column"><div class="model-detail-preview-sticky">${previewMarkup}</div></div>
@@ -1630,7 +1671,7 @@ async function modelModal(id, forceHealthRefresh=false) {
         ${field('title', 'Title', m.title, 'text', 'wide')}
         ${selectField('category', 'Category', categories, m.category)}
         ${field('creator', 'Creator / designer', m.creator)}
-        ${field('tags', 'Tags', m.tags?.join(', '), 'text', 'wide', 'miniature, goblin, fantasy')}
+        ${tagPickerField('tags', 'Tags', m.tags?.join(', '), 'wide', 'miniature, goblin, fantasy')}
         ${field('source_url', 'Source URL', m.source_url, 'url', 'wide', 'https://…')}
         ${field('license', 'Licence', m.license)}
         ${selectField('status', 'Status', ['Ready','Needs repair','Needs supports','Printed','Archived'], m.status)}
@@ -1658,13 +1699,14 @@ async function modelModal(id, forceHealthRefresh=false) {
   if ($('#healthAnalyseBtn')) $('#healthAnalyseBtn').onclick = () => loadModelHealth(id, true);
   if ($('#healthPrinterSelect')) $('#healthPrinterSelect').onchange = () => { if ($('#healthHeaderBadge')?.textContent !== 'Not analysed') loadModelHealth(id, false); };
   if ($('#healthRepairBtn')) $('#healthRepairBtn').onclick = () => safeRepairModel(id);
+  if ($('#detailLightDepth')) $('#detailLightDepth').oninput = event => setDetailLightDepth(Number(event.currentTarget.value)/100);
   if ($('#setThumbViewBtn')) $('#setThumbViewBtn').onclick = async () => {
     const view=captureDetailThumbnailView(); if(!view)return toast('3D preview is still loading',true);
-    try{await api(`/api/models/${id}/thumbnail-view`,jsonOpt('PUT',view));$('#thumbnailViewState').textContent='Custom thumbnail angle';toast('Thumbnail view saved · cached preview will regenerate');}
+    try{await api(`/api/models/${id}/thumbnail-view`,jsonOpt('PUT',view));$('#thumbnailViewState').textContent='Custom thumbnail view';toast('Thumbnail view and lighting saved · cached preview will regenerate');}
     catch(e){toast(e.message,true);}
   };
   if ($('#resetThumbViewBtn')) $('#resetThumbViewBtn').onclick = async () => {
-    try{const info=await api(`/api/models/${id}/thumbnail-view`,{method:'DELETE'});applyDetailThumbnailView(info.effective);$('#thumbnailViewState').textContent=info.inherited?'Inherited thumbnail angle':'Automatic thumbnail angle';toast(info.inherited?'Using inherited family thumbnail angle':'Using automatic thumbnail angle');}
+    try{const info=await api(`/api/models/${id}/thumbnail-view`,{method:'DELETE'});applyDetailThumbnailView(info.effective);$('#thumbnailViewState').textContent=info.inherited?'Inherited thumbnail view':'Automatic thumbnail view';toast(info.inherited?'Using inherited family thumbnail view':'Using automatic thumbnail view');}
     catch(e){toast(e.message,true);}
   };
   $('#saveModelBtn').onclick = async () => {
@@ -1706,7 +1748,7 @@ function uploadWizard(files) {
     <form id="uploadMeta" class="fields">
       ${targetFolderId?`<div class="field wide"><div class="upload-folder-target"><span class="folder-glyph small"><i></i></span><div><strong>File into ${esc(collectionPathLabel(folder))}</strong><small>Uploaded models will be added to the folder you are currently viewing.</small></div></div></div>`:''}
       ${selectField('category', 'Category', ['Unsorted','Miniatures','Terrain','Functional','Props','Parts','Tools'], 'Unsorted')}
-      ${field('tags', 'Tags', '', 'text', '', 'fantasy, terrain, 28mm')}
+      ${tagPickerField('tags', 'Tags', '', '', 'fantasy, terrain, 28mm')}
       ${field('creator', 'Creator / designer', '', 'text', 'wide')}
       ${field('source_url', 'Source URL', '', 'url', 'wide', 'Optional source / purchase page')}
       ${field('license', 'Licence', '', 'text', 'wide', 'Personal use, CC BY, commercial…')}
@@ -1745,7 +1787,7 @@ function newProjectModal() {
     <div class="field wide"><label>Description</label><textarea name="description" placeholder="What are you building, and what needs to be printed?"></textarea></div>
     ${selectField('status','Status',['Planning','Ready to print','Printing','Complete','On hold'],'Planning')}
     ${field('due_date','Target date','','date')}
-    ${field('tags','Tags','','text','wide','','campaign, terrain, gift')}
+    ${tagPickerField('tags','Tags','','wide','campaign, terrain, gift')}
     </form>`, `<button class="ghost" data-close-modal>Cancel</button><button class="primary" id="createProjectBtn">Create project</button>`, 'Project');
   $('#createProjectBtn').onclick = async () => {
     const d = formDataObject($('#projectForm'));
@@ -1828,7 +1870,7 @@ async function projectModal(id) {
       <div class="field wide"><label>Description</label><textarea name="description">${esc(p.description)}</textarea></div>
       ${selectField('status','Status',['Planning','Ready to print','Printing','Complete','On hold'],p.status)}
       ${field('due_date','Target date',p.due_date || '','date')}
-      ${field('tags','Tags',p.tags?.join(', '),'text','wide')}
+      ${tagPickerField('tags','Tags',p.tags?.join(', '),'wide')}
     </form>
     <div class="section-head project-models-head"><div><h2>Project models</h2><p>${p.models.length} currently linked · highest combined urgency and importance appears first. Changes are committed by <strong>Save project</strong>.</p></div></div>
     ${p.models.length ? `<div class="list project-model-list">${p.models.map(m => `

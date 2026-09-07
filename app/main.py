@@ -85,7 +85,7 @@ for p in (DATA_DIR, DATABASE_DIR, FILES_DIR, IMPORT_DIR, BACKUP_DIR, THUMB_DIR, 
 configure_catalog(DATA_DIR)
 configure_printer_catalog(DATA_DIR)
 
-app = FastAPI(title="LayerVault", version="0.3.32")
+app = FastAPI(title="LayerVault", version="0.3.33")
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=APP_DIR / "templates")
 
@@ -1202,11 +1202,11 @@ def inspect_geometry(path: Path) -> dict[str, Any]:
     return {}
 
 
-THUMB_RENDER_VERSION = "3"
+THUMB_RENDER_VERSION = "4"
 THUMB_FULL_FACE_LIMIT = 700_000
 THUMBNAIL_RENDER_LOCK = threading.Lock()
 MESH_HEALTH_RENDER_LOCK = threading.Lock()
-DEFAULT_THUMBNAIL_VIEW = {"yaw_deg": 22.0, "pitch_deg": 18.0, "zoom": 1.0}
+DEFAULT_THUMBNAIL_VIEW = {"yaw_deg": 22.0, "pitch_deg": 18.0, "zoom": 1.0, "light_depth": 0.65}
 
 
 def normalize_thumbnail_view(value: Any) -> dict[str, float]:
@@ -1228,10 +1228,13 @@ def normalize_thumbnail_view(value: Any) -> dict[str, float]:
     except Exception: pitch = DEFAULT_THUMBNAIL_VIEW["pitch_deg"]
     try: zoom = float(value.get("zoom", DEFAULT_THUMBNAIL_VIEW["zoom"]))
     except Exception: zoom = DEFAULT_THUMBNAIL_VIEW["zoom"]
+    try: light_depth = float(value.get("light_depth", DEFAULT_THUMBNAIL_VIEW["light_depth"]))
+    except Exception: light_depth = DEFAULT_THUMBNAIL_VIEW["light_depth"]
     yaw = ((yaw + 180.0) % 360.0) - 180.0
     pitch = max(-60.0, min(60.0, pitch))
     zoom = max(0.72, min(1.30, zoom))
-    return {"yaw_deg": round(yaw, 3), "pitch_deg": round(pitch, 3), "zoom": round(zoom, 4)}
+    light_depth = max(-1.0, min(1.0, light_depth))
+    return {"yaw_deg": round(yaw, 3), "pitch_deg": round(pitch, 3), "zoom": round(zoom, 4), "light_depth": round(light_depth, 3)}
 
 
 def effective_thumbnail_view(conn: sqlite3.Connection, row: sqlite3.Row) -> tuple[dict[str, float], str | None, bool]:
@@ -1358,7 +1361,7 @@ def _render_binary_stl_thumbnail(path: Path, output: Path, size: tuple[int, int]
     record = struct.Struct("<7f")
     depth_span = max(max_z - min_z, 1e-9)
     # Bright studio light from above/front-left.
-    light = (0.34, 0.68, 0.65)
+    light = (0.34, 0.68, view["light_depth"])
     light_len = math.sqrt(sum(v*v for v in light)) or 1.0
     light = tuple(v/light_len for v in light)
     kept = 0
@@ -1469,7 +1472,7 @@ def generate_thumbnail(path: Path, output: Path, size: tuple[int,int]=(640,460),
     pts=[((x-cx)*scale+w/2, h/2-(y-cy)*scale, z) for x,y,z in transformed]
     img=Image.new('RGBA',(w,h),(0,0,0,0)); draw=ImageDraw.Draw(img,'RGBA')
     draw.ellipse((w*.22,h*.80,w*.78,h*.91), fill=(32,58,74,18))
-    light=(0.34,0.68,0.65); ll=math.sqrt(sum(v*v for v in light)) or 1; light=tuple(v/ll for v in light)
+    light=(0.34,0.68,view["light_depth"]); ll=math.sqrt(sum(v*v for v in light)) or 1; light=tuple(v/ll for v in light)
     painted=[]
     for a,b,c in faces:
         if max(a,b,c)>=len(pts): continue
@@ -2345,7 +2348,7 @@ def scan_import_folder():
 def taxonomy():
     with db() as conn:
         categories = [r[0] for r in conn.execute("SELECT DISTINCT category FROM models WHERE category<>'' ORDER BY category COLLATE NOCASE")]
-        rows = conn.execute("SELECT tags FROM models").fetchall()
+        rows = conn.execute("SELECT tags FROM models UNION ALL SELECT tags FROM projects").fetchall()
     tags = sorted({t for r in rows for t in normalize_tags(json.loads(r[0] or "[]"))}, key=str.casefold)
     return {"categories": categories, "tags": tags}
 

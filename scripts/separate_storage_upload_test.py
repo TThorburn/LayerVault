@@ -30,4 +30,4 @@ assert model["original_filename"] == "obj_2_single_color (12)_stl_A.stl"
 assert (models / model["stored_filename"]).read_bytes() == stl
 assert not any(workspace.glob("upload-*"))
 
-print("LayerVault v0.3.32 separate-volume model upload regression: PASS")
+print("LayerVault v0.3.33 separate-volume model upload regression: PASS")

@@ -37,7 +37,7 @@ import app.main as main_module  # noqa: E402
 
 
 client = TestClient(app)
-assert client.get("/health").json() == {"ok": True, "version": "0.3.32", "schema": 128}
+assert client.get("/health").json() == {"ok": True, "version": "0.3.33", "schema": 128}
 assert DB_PATH == database_dir.resolve() / "layervault.db"
 assert FILES_DIR == models_dir.resolve()
 assert BACKUP_DIR == backups_dir.resolve()
@@ -121,4 +121,4 @@ for theme in ("ocean", "orchid", "forest"):
     assert f"id:'{theme}'" in js
     assert f'data-theme="{theme}"' in css
 
-print("LayerVault v0.3.32 safe portable storage apply and expanded glass themes: PASS")
+print("LayerVault v0.3.33 safe portable storage apply and expanded glass themes: PASS")

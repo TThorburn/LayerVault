@@ -9,4 +9,4 @@ assert 'renderFdmSlicer' not in js and '/api/fdm-slicer/' not in js
 assert 'orcaslicer' not in compose['services']
 assert (root/'third_party/printer-artwork/orcaslicer/profiles').is_dir()
 assert len(list((root/'third_party/printer-artwork/orcaslicer/profiles').rglob('*_cover.png'))) >= 300
-print('LayerVault v0.3.32 retired FDM runtime and retained Orca printer artwork: PASS')
+print('LayerVault v0.3.33 retired FDM runtime and retained Orca printer artwork: PASS')
