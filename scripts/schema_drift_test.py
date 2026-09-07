@@ -40,7 +40,7 @@ INSERT INTO collections VALUES ('c1','Old folder','','manual','{}','2026-01-01',
 conn.commit(); conn.close()
 
 from app.main import DB_PATH, app  # noqa: E402
-assert app.version == "0.3.29"
+assert app.version == "0.3.30"
 
 conn = sqlite3.connect(DB_PATH)
 conn.row_factory = sqlite3.Row
@@ -67,4 +67,4 @@ assert 'idx_printers_source' in indexes
 assert {'custom_image_assets','custom_image_bindings','job_models'} <= {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
 assert conn.execute('PRAGMA user_version').fetchone()[0] == 128
 conn.close()
-print('LayerVault v0.3.29 schema-drift startup regression: PASS')
+print('LayerVault v0.3.30 schema-drift startup regression: PASS')

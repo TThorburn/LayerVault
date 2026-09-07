@@ -35,18 +35,40 @@ from .printer_catalog import configure as configure_printer_catalog, providers a
 from .mesh_health import ENGINE_NAME as MESH_HEALTH_ENGINE, ENGINE_VERSION as MESH_HEALTH_VERSION, SUPPORTED as HEALTH_SUPPORTED, analyse_file as analyse_mesh_file, printer_fit as mesh_printer_fit, repair_file as repair_mesh_file, MANUFACTURING_ENGINE_VERSION, manufacturing_analysis_file, resin_prepare_file
 
 APP_DIR = Path(__file__).resolve().parent
-DATA_DIR = Path(os.getenv("DATA_DIR", APP_DIR.parent / "data")).resolve()
-DATABASE_DIR = Path(os.getenv("DATABASE_DIR", DATA_DIR)).resolve()
-FILES_DIR = Path(os.getenv("FILES_DIR", DATA_DIR / "files")).resolve()
+STORAGE_CONFIG_FILE = Path(os.getenv("STORAGE_CONFIG_FILE", "")).resolve() if os.getenv("STORAGE_CONFIG_FILE", "").strip() else None
+
+
+def _load_storage_config() -> dict[str, Any]:
+    if not STORAGE_CONFIG_FILE or not STORAGE_CONFIG_FILE.is_file():
+        return {}
+    try:
+        payload = json.loads(STORAGE_CONFIG_FILE.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+STORAGE_CONFIG = _load_storage_config()
+
+
+def _configured_storage_path(key: str, fallback: str | Path) -> Path:
+    item = STORAGE_CONFIG.get(key)
+    value = item.get("container_path") if isinstance(item, dict) else item
+    return Path(value or fallback).resolve()
+
+
+DATA_DIR = _configured_storage_path("workspace", os.getenv("DATA_DIR", APP_DIR.parent / "data"))
+DATABASE_DIR = _configured_storage_path("database", os.getenv("DATABASE_DIR", DATA_DIR))
+FILES_DIR = _configured_storage_path("models", os.getenv("FILES_DIR", DATA_DIR / "files"))
 IMPORT_DIR = DATA_DIR / "import"
-BACKUP_DIR = Path(os.getenv("BACKUP_DIR", DATA_DIR / "backups")).resolve()
+BACKUP_DIR = _configured_storage_path("backups", os.getenv("BACKUP_DIR", DATA_DIR / "backups"))
 THUMB_DIR = DATA_DIR / "thumbnails"
 RESULT_DIR = DATA_DIR / "print-results"
 TOOLPATH_DIR = DATA_DIR / "job-files"
 TOOLPATH_UPLOAD_DIR = DATA_DIR / "toolpath-uploads"
 CUSTOM_IMAGE_DIR = DATA_DIR / "custom-images"
 CATALOG_CACHE_DIR = DATA_DIR / "catalog-cache"
-SKETCHFORGE_PROJECTS_DIR = DATA_DIR / "sketchforge" / "projects"
+SKETCHFORGE_PROJECTS_DIR = Path(os.getenv("SKETCHFORGE_PROJECTS_DIR", DATA_DIR / "sketchforge" / "projects")).resolve()
 SKETCHFORGE_URL = os.getenv("SKETCHFORGE_URL", "").strip()
 DB_PATH = DATABASE_DIR / "layervault.db"
 SUPPORTED = {".stl", ".obj", ".3mf", ".step", ".stp", ".gcode", ".bgcode", ".ctb", ".goo", ".lys", ".zip"}
@@ -57,7 +79,7 @@ for p in (DATA_DIR, DATABASE_DIR, FILES_DIR, IMPORT_DIR, BACKUP_DIR, THUMB_DIR, 
 configure_catalog(DATA_DIR)
 configure_printer_catalog(DATA_DIR)
 
-app = FastAPI(title="LayerVault", version="0.3.29")
+app = FastAPI(title="LayerVault", version="0.3.30")
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=APP_DIR / "templates")
 
@@ -3762,14 +3784,184 @@ def _storage_location(kind: str, path: Path, host_env: str) -> dict[str, Any]:
         free_bytes = usage.free
     except OSError:
         free_bytes = None
+    configured = STORAGE_CONFIG.get(kind)
+    configured_host = configured.get("host_path", "") if isinstance(configured, dict) else ""
+    current_host = ""
+    for root in _storage_roots():
+        container_root = Path(root["container_path"]).resolve()
+        try:
+            relative = path.resolve().relative_to(container_root)
+            suffix = relative.as_posix()
+            current_host = _normalise_host_path(root["host_path"] + (f"/{suffix}" if suffix != "." else ""))
+            break
+        except ValueError:
+            continue
     return {
         "kind": kind,
         "container_path": str(path),
-        "host_path": os.getenv(host_env, "").strip(),
+        "host_path": current_host or configured_host or os.getenv(host_env, "").strip(),
         "exists": path.exists(),
         "writable": path.is_dir() and os.access(path, os.W_OK),
         "free_bytes": free_bytes,
     }
+
+
+def _storage_roots() -> list[dict[str, str]]:
+    roots: list[dict[str, str]] = []
+    for index in range(1, 5):
+        host = os.getenv(f"STORAGE_ROOT_{index}_HOST", "").strip()
+        container = os.getenv(f"STORAGE_ROOT_{index}_CONTAINER", "").strip()
+        if host and container:
+            roots.append({"id": str(index), "host_path": host, "container_path": str(Path(container).resolve())})
+    return roots
+
+
+def _normalise_host_path(value: str) -> str:
+    value = str(value or "").strip().replace("\\", "/")
+    prefix = "//" if value.startswith("//") else ""
+    value = re.sub(r"/+", "/", value[2:] if prefix else value)
+    while value.startswith("./"):
+        value = value[2:]
+    value = (prefix + value).rstrip("/")
+    return value or "/"
+
+
+def _blocked_system_path(value: str) -> bool:
+    normal = _normalise_host_path(value)
+    folded = normal.casefold()
+    linux = ("/", "/bin", "/boot", "/dev", "/etc", "/lib", "/lib64", "/proc", "/root", "/run", "/sbin", "/sys", "/usr", "/var/lib/docker")
+    windows = ("c:/windows", "c:/program files", "c:/program files (x86)", "c:/programdata", "c:/users/default", "c:/users/public")
+    return any(normal == item or normal.startswith(item + "/") for item in linux) or any(folded == item or folded.startswith(item + "/") for item in windows)
+
+
+def _translate_storage_path(host_value: str) -> tuple[Path, str]:
+    requested = _normalise_host_path(host_value)
+    if not requested or _blocked_system_path(requested):
+        raise ValueError("Choose a data folder or mounted share, not an operating-system folder.")
+    matches: list[tuple[int, dict[str, str], str]] = []
+    for root in _storage_roots():
+        host_root = _normalise_host_path(root["host_path"])
+        insensitive = host_root.startswith("//") or bool(re.match(r"^[A-Za-z]:/", host_root))
+        candidate = requested.casefold() if insensitive else requested
+        base = host_root.casefold() if insensitive else host_root
+        if candidate == base:
+            matches.append((len(base), root, ""))
+        elif candidate.startswith(base.rstrip("/") + "/"):
+            matches.append((len(base), root, requested[len(host_root):].lstrip("/")))
+    if not matches:
+        raise ValueError("This path is outside the storage roots mapped by the server administrator.")
+    _, root, relative = max(matches, key=lambda item: item[0])
+    relative_parts = [part for part in relative.split("/") if part and part != "."]
+    if any(part == ".." for part in relative_parts):
+        raise ValueError("Parent-directory path segments are not allowed.")
+    container_root = Path(root["container_path"]).resolve()
+    destination = container_root.joinpath(*relative_parts).resolve()
+    try:
+        destination.relative_to(container_root)
+    except ValueError as exc:
+        raise ValueError("The selected path leaves its mapped storage root.") from exc
+    return destination, requested
+
+
+_storage_apply_lock = threading.Lock()
+_storage_apply_status: dict[str, Any] = {"state": "idle", "message": "No storage move is running.", "progress": 0}
+
+
+def _set_storage_apply_status(**values: Any) -> None:
+    with _storage_apply_lock:
+        _storage_apply_status.update(values)
+
+
+def _copy_storage_tree(source: Path, destination: Path, skip_dirs: list[Path] | None = None, skip_files: list[Path] | None = None) -> None:
+    source, destination = source.resolve(), destination.resolve()
+    if source == destination or not source.exists():
+        return
+    destination.mkdir(parents=True, exist_ok=True)
+    excluded_dirs = {path.resolve() for path in (skip_dirs or []) if path.resolve() != source}
+    excluded_files = {path.resolve() for path in (skip_files or [])}
+    try:
+        destination.relative_to(source)
+        excluded_dirs.add(destination)
+    except ValueError:
+        pass
+    for folder, dir_names, file_names in os.walk(source):
+        current = Path(folder).resolve()
+        dir_names[:] = [name for name in dir_names if (current / name).resolve() not in excluded_dirs]
+        relative = current.relative_to(source)
+        target_folder = destination / relative
+        target_folder.mkdir(parents=True, exist_ok=True)
+        for name in file_names:
+            src = (current / name).resolve()
+            if src in excluded_files:
+                continue
+            shutil.copy2(src, target_folder / name)
+
+
+def _apply_storage_job(destinations: dict[str, Path], host_paths: dict[str, str]) -> None:
+    try:
+        _set_storage_apply_status(state="copying", progress=10, message="Copying workspace files…")
+        workspace_skips = [path for path in (DATABASE_DIR, FILES_DIR, BACKUP_DIR) if path != DATA_DIR]
+        database_files = [DB_PATH, Path(str(DB_PATH) + "-wal"), Path(str(DB_PATH) + "-shm")]
+        _copy_storage_tree(DATA_DIR, destinations["workspace"], workspace_skips, database_files)
+        _set_storage_apply_status(progress=35, message="Copying model files…")
+        _copy_storage_tree(FILES_DIR, destinations["models"])
+        _set_storage_apply_status(progress=60, message="Copying backup archives…")
+        _copy_storage_tree(BACKUP_DIR, destinations["backups"])
+        _set_storage_apply_status(progress=78, message="Creating a safe database copy…")
+        target_db = destinations["database"] / "layervault.db"
+        if target_db.resolve() != DB_PATH.resolve():
+            target_db.parent.mkdir(parents=True, exist_ok=True)
+            if target_db.exists():
+                safety_copy = target_db.with_name(f"layervault.pre-apply-{datetime.now().strftime('%Y%m%d-%H%M%S')}.db")
+                shutil.copy2(target_db, safety_copy)
+            with sqlite3.connect(DB_PATH) as source_db, sqlite3.connect(target_db) as destination_db:
+                source_db.backup(destination_db)
+        _set_storage_apply_status(progress=90, message="Saving the new storage mapping…")
+        config = {key: {"container_path": str(destinations[key]), "host_path": host_paths[key]} for key in ("workspace", "database", "models", "backups")}
+        assert STORAGE_CONFIG_FILE is not None
+        STORAGE_CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        temporary = STORAGE_CONFIG_FILE.with_suffix(".tmp")
+        temporary.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(STORAGE_CONFIG_FILE)
+        should_restart = os.getenv("STORAGE_RESTART_ON_APPLY", "false").strip().lower() in {"1", "true", "yes", "on"}
+        _set_storage_apply_status(state="complete", progress=100, message="Storage updated. LayerVault is restarting…" if should_restart else "Storage updated. Restart LayerVault to use it.", restart_scheduled=should_restart)
+        if should_restart:
+            threading.Event().wait(1.5)
+            os._exit(0)
+    except Exception as exc:
+        _set_storage_apply_status(state="failed", message=str(exc), progress=0, restart_scheduled=False)
+
+
+@app.get("/api/settings/storage/apply/status", dependencies=[Depends(auth)])
+def storage_apply_status():
+    with _storage_apply_lock:
+        return dict(_storage_apply_status)
+
+
+@app.post("/api/settings/storage/apply", dependencies=[Depends(auth)], status_code=202)
+def apply_storage_settings(payload: dict[str, Any]):
+    if not STORAGE_CONFIG_FILE or not _storage_roots():
+        raise HTTPException(409, "Storage Apply is not enabled for this deployment. Map at least one storage root and redeploy first.")
+    with _storage_apply_lock:
+        if _storage_apply_status.get("state") in {"validating", "copying"}:
+            raise HTTPException(409, "A storage move is already running.")
+        _storage_apply_status.update(state="validating", message="Checking destinations…", progress=2, restart_scheduled=False)
+    destinations: dict[str, Path] = {}
+    host_paths: dict[str, str] = {}
+    try:
+        for key in ("workspace", "database", "models", "backups"):
+            destination, host_path = _translate_storage_path(str(payload.get(key, "")))
+            destination.mkdir(parents=True, exist_ok=True)
+            probe = destination / f".layervault-write-test-{uuid.uuid4().hex}"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink()
+            destinations[key], host_paths[key] = destination, host_path
+    except (OSError, ValueError) as exc:
+        _set_storage_apply_status(state="failed", message=str(exc), progress=0)
+        raise HTTPException(400, str(exc)) from exc
+    worker = threading.Thread(target=_apply_storage_job, args=(destinations, host_paths), name="layervault-storage-apply", daemon=True)
+    worker.start()
+    return {"ok": True, "state": "copying", "message": "LayerVault is copying existing data to the new locations."}
 
 
 @app.get("/api/settings/backups", dependencies=[Depends(auth)])
@@ -3788,6 +3980,8 @@ def backup_settings():
             "database": _storage_location("database", DATABASE_DIR, "LAYERVAULT_DATABASE_PATH"),
             "models": _storage_location("models", FILES_DIR, "LAYERVAULT_MODELS_PATH"),
             "backups": _storage_location("backups", BACKUP_DIR, "LAYERVAULT_BACKUPS_PATH"),
+            "apply_enabled": bool(STORAGE_CONFIG_FILE and _storage_roots()),
+            "roots": _storage_roots(),
         },
     }
 

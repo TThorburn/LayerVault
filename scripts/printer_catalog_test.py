@@ -54,7 +54,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app import printer_catalog as pc
 c=TestClient(app)
-assert c.get('/health').json()['version']=='0.3.29'
+assert c.get('/health').json()['version']=='0.3.30'
 assert {x['id'] for x in c.get('/api/printer-catalog/providers').json()}=={'orca','uvtools','dragonfruit'}
 
 # Records describing the same physical model collapse across databases. The
@@ -191,4 +191,4 @@ try:
 finally:
     pc.httpx.Client=orig
 
-print('LayerVault v0.3.29 printer catalogue/provider test: PASS')
+print('LayerVault v0.3.30 printer catalogue/provider test: PASS')

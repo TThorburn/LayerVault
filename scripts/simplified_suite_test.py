@@ -12,7 +12,7 @@ os.environ["DATA_DIR"] = tempfile.mkdtemp(prefix="layervault-simplified-")
 
 from app.main import app  # noqa: E402
 
-assert app.version == "0.3.29"
+assert app.version == "0.3.30"
 compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
 assert set(compose["services"]) == {"layervault", "sketchforge"}
 assert set(compose["services"]["layervault"]["depends_on"]) == {"sketchforge"}
@@ -56,4 +56,4 @@ check_owned_artwork("Bambu Lab", "A1 mini", "orca")
 check_owned_artwork("Creality", "K1C", "orca")
 check_owned_artwork("Anycubic", "Photon M3", "dragonfruit")
 
-print("LayerVault v0.3.29 simplified suite and printer artwork: PASS")
+print("LayerVault v0.3.30 simplified suite and printer artwork: PASS")

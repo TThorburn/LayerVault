@@ -526,11 +526,12 @@ function storageSettingsHtml(storage={}){
     ['models','LAYERVAULT_MODELS_PATH','Model files','STL, OBJ, 3MF and other library assets.','./data/files'],
     ['backups','LAYERVAULT_BACKUPS_PATH','Backup archives','Manual and scheduled recovery ZIP files.','./data/backups'],
   ];
+  const roots=storage.roots||[];
   return `<section class="settings-card storage-card">
-    <div class="settings-card-head"><div><span class="kicker">Storage locations</span><h3>Choose where LayerVault keeps its data</h3><p>Use local server folders, attached drives or mounted NAS shares. Docker only receives the folders you explicitly map.</p></div><span class="settings-card-symbol">⌁</span></div>
-    <div class="storage-location-list">${definitions.map(([key,env,label,note,fallback])=>{const item=storage[key]||{};const value=item.host_path||fallback;return `<label class="storage-location-row"><span class="storage-location-icon">${key==='database'?'DB':key==='models'?'3D':key==='backups'?'ZIP':'APP'}</span><span class="grow"><strong>${label}</strong><small>${note}</small><input data-storage-env="${env}" value="${esc(value)}" spellcheck="false" aria-label="${label} host path"><em>Mounted inside LayerVault at ${esc(item.container_path||'after restart')}</em></span><span class="storage-path-state ${item.writable?'ready':'pending'}"><i></i>${item.writable?'Ready':'Apply & restart'}</span></label>`}).join('')}</div>
-    <div class="storage-help"><span>NAS examples</span><code>//PRINT-NAS/3d-models</code><code>/mnt/nas/layervault</code><small>Docker Desktop may ask you to allow access to a Windows drive or network share.</small></div>
-    <div class="settings-card-actions"><small>Download the configuration, place it beside <code>docker-compose.yml</code> as <code>.env</code>, then restart LayerVault.</small><button class="primary" id="downloadStorageEnv" type="button">Download storage settings</button></div>
+    <div class="settings-card-head"><div><span class="kicker">Storage locations</span><h3>Choose where LayerVault keeps its data</h3><p>Use local server folders, attached drives or mounted NAS shares. LayerVault can only use storage roots explicitly mapped by the server administrator.</p></div><span class="settings-card-symbol">⌁</span></div>
+    <div class="storage-location-list">${definitions.map(([key,env,label,note,fallback])=>{const item=storage[key]||{};const value=item.host_path||fallback;return `<label class="storage-location-row"><span class="storage-location-icon">${key==='database'?'DB':key==='models'?'3D':key==='backups'?'ZIP':'APP'}</span><span class="grow"><strong>${label}</strong><small>${note}</small><input data-storage-key="${key}" data-storage-env="${env}" value="${esc(value)}" spellcheck="false" aria-label="${label} host path"><em>Currently used inside LayerVault at ${esc(item.container_path||'after restart')}</em></span><span class="storage-path-state ${item.writable?'ready':'pending'}"><i></i>${item.writable?'Ready':'Unavailable'}</span></label>`}).join('')}</div>
+    <div class="storage-help"><span>Available roots</span>${roots.length?roots.map(root=>`<code title="Mapped inside the container at ${esc(root.container_path)}">${esc(root.host_path)}</code>`).join(''):'<code>None mapped yet</code>'}<small>To add a new disk or share, map it to a storage slot in Portainer and redeploy once. Subfolders can then be changed here.</small></div>
+    <div class="settings-card-actions"><small>${storage.apply_enabled?'Apply copies existing data, keeps the old copy as a safety net, saves the mapping and restarts LayerVault.':'Redeploy with the updated Compose file to enable safe one-click storage changes.'}</small><button class="ghost" id="downloadStorageEnv" type="button">Download settings</button><button class="primary" id="applyStorageBtn" type="button" ${storage.apply_enabled?'':'disabled'}>Apply &amp; restart</button></div>
   </section>`;
 }
 function downloadStorageEnvironment(){
@@ -540,6 +541,29 @@ function downloadStorageEnvironment(){
   const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
   const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='layervault-storage.env';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
   toast('Storage settings downloaded');
+}
+async function applyStorageSettings(){
+  const values=Object.fromEntries($$('[data-storage-key]').map(input=>[input.dataset.storageKey,input.value.trim()]));
+  if(Object.values(values).some(value=>!value)){toast('Choose all four storage locations first',true);return;}
+  if(!(await confirmAction('Apply new storage locations?',"LayerVault will copy—not delete—your existing data, save the new paths and restart. Large model libraries can take a while.")))return;
+  const button=$('#applyStorageBtn');button.disabled=true;button.textContent='Checking locations…';
+  try{
+    await api('/api/settings/storage/apply',jsonOpt('POST',values));
+    const poll=async()=>{
+      try{
+        const status=await api('/api/settings/storage/apply/status');
+        button.textContent=status.state==='complete'?'Restarting…':`${status.message||'Moving data'} ${status.progress||0}%`;
+        if(status.state==='failed'){toast(status.message||'Storage update failed',true);button.disabled=false;button.textContent='Apply & restart';return;}
+        if(status.state==='complete'){
+          toast(status.message||'Storage updated');
+          if(status.restart_scheduled){setTimeout(()=>location.reload(),3000);}else{button.disabled=false;button.textContent='Apply & restart';}
+          return;
+        }
+        setTimeout(poll,1000);
+      }catch(err){button.textContent='Waiting for LayerVault…';setTimeout(()=>location.reload(),3000);}
+    };
+    poll();
+  }catch(err){toast(err.message,true);button.disabled=false;button.textContent='Apply & restart';}
 }
 function scheduleFormHtml(item={}, scopes=[]) {
   const chosen=item.scopes?.length?item.scopes:scopes.map(x=>x.id);
@@ -600,6 +624,7 @@ async function renderSettings() {
   $('#manualBackupForm').onsubmit=async e=>{e.preventDefault();const button=$('#runBackupBtn');const scopes=$$('[data-backup-scope]:checked',e.currentTarget).map(x=>x.value);button.disabled=true;button.textContent='Creating archive…';try{const result=await api('/api/settings/backups/run',jsonOpt('POST',{scopes}));toast(`Backup created · ${fmtBytes(result.size_bytes)}`);renderSettings();}catch(err){toast(err.message,true);button.disabled=false;button.textContent='Create backup';}};
   $$('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice,true));
   $('#downloadStorageEnv').onclick=downloadStorageEnvironment;
+  $('#applyStorageBtn').onclick=applyStorageSettings;
   $('#newBackupScheduleBtn').onclick=()=>backupScheduleModal();
   $$('[data-backup-schedule]').forEach(button=>button.onclick=()=>backupScheduleModal(button.dataset.backupSchedule));
   $$('[data-delete-backup]').forEach(button=>button.onclick=async()=>{const item=settings.backups.find(x=>x.id===button.dataset.deleteBackup);if(!(await confirmAction('Delete backup file?',`${item?.file_name||'This archive'} will be permanently removed.`)))return;await api(`/api/settings/backups/${button.dataset.deleteBackup}`,{method:'DELETE'});toast('Backup file deleted');renderSettings();});

@@ -167,5 +167,5 @@ assert c.get(f"/api/materials/{mat['id']}").json()['remaining_amount']==190
 for path in ['/api/export/print-history.csv','/api/export/materials.csv']:
     exp=c.get(path); assert exp.status_code==200 and exp.headers['content-type'].startswith('text/csv') and len(exp.text.splitlines())>=2
 
-assert c.get('/health').json()['version']=='0.3.29'
-print('LayerVault v0.3.29 integration test: PASS')
+assert c.get('/health').json()['version']=='0.3.30'
+print('LayerVault v0.3.30 integration test: PASS')

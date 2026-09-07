@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.30 — Portable Storage Apply
+
+- Added an **Apply & restart** action to Settings for safe, non-destructive storage relocation.
+- Added four portable administrator-mapped storage roots that work with local folders and mounted SMB/NFS shares on Linux, Windows and NAS hosts.
+- Restricted the application to explicitly mapped roots and blocked common operating-system directories without granting access to the Docker socket or the whole host filesystem.
+- Copies workspace files, model originals and backup archives before switching, and uses SQLite's backup API for a consistent database copy.
+- Persists the active mapping in a small Docker volume so it survives container recreation and Portainer stack updates.
+- Retained the downloadable `.env` file for adding or changing a host mount before redeployment.
+
 ## 0.3.29 — New Project Identity
 
 - Replaced the original cube glyph with a purpose-made layered-vault brand mark.

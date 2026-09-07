@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 0.3.29" src="https://img.shields.io/badge/version-0.3.29-476dff?style=for-the-badge">
+  <img alt="Version 0.3.30" src="https://img.shields.io/badge/version-0.3.30-476dff?style=for-the-badge">
   <img alt="AGPL-3.0-only" src="https://img.shields.io/badge/licence-AGPL--3.0-6547e8?style=for-the-badge">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker&logoColor=white">
   <img alt="Self-hosted" src="https://img.shields.io/badge/self--hosted-LAN--first-17a673?style=for-the-badge">
@@ -88,6 +88,10 @@ LAYERVAULT_MODELS_PATH=//PRINT-NAS/3d-models
 LAYERVAULT_BACKUPS_PATH=//BACKUP-NAS/layervault
 ```
 
+These four locations are also LayerVault's administrator-approved storage roots. After deploying v0.3.30, Settings can move each category to the root itself or any subfolder below it: enter the paths, choose **Apply & restart**, and LayerVault copies the existing data before switching. The original files are retained as a safety copy.
+
+To use a completely new disk or network share, change one of these four variables in Portainer (or `.env`) and redeploy once. It then becomes available to the Apply button. This keeps the web application away from the Docker socket and from unrelated host files.
+
 | Setting | Purpose | Default |
 |---|---|---|
 | `LAYERVAULT_DATA_PATH` | Working data, thumbnails, uploads, print photos and Workshop projects | `./data` |
@@ -98,6 +102,8 @@ LAYERVAULT_BACKUPS_PATH=//BACKUP-NAS/layervault
 | `APP_USERNAME` / `APP_PASSWORD` | Optional HTTP Basic authentication for LayerVault | Disabled when the password is blank |
 
 Windows paths can use forward slashes, for example `D:/LayerVault/database` or `//server/share/models`. Docker Desktop must be allowed to access the selected location. On Linux, mount a NAS share on the host first and use its absolute mount path.
+
+Keep the live SQLite database on a local Linux filesystem where possible; use the NAS for model originals and backup archives. SMB/NFS locking interruptions can corrupt a live SQLite database even though those shares are suitable for ordinary files.
 
 ## How it fits together
 
@@ -148,7 +154,7 @@ LayerVault does not bundle or launch the DragonFruit, OrcaSlicer or UVtools appl
 
 ## Release notes
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.29 introduced the new layered-vault identity, browser icons and polished project artwork used throughout this README.
+See [`CHANGELOG.md`](CHANGELOG.md) for the complete version history. LayerVault v0.3.30 adds portable administrator-mapped storage roots and safe, non-destructive **Apply & restart** storage changes.
 
 ## Licence
 

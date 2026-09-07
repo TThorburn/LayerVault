@@ -9,4 +9,4 @@ assert 'renderSlaSlicer' not in js
 assert 'dragonfruit' not in compose['services']
 for pack in ('anycubic','elegoo','athena'):
     assert (root/'third_party/dragonfruit/plugins'/pack).is_dir()
-print('LayerVault v0.3.29 retired SLA runtime and retained DragonFruit printer artwork: PASS')
+print('LayerVault v0.3.30 retired SLA runtime and retained DragonFruit printer artwork: PASS')
